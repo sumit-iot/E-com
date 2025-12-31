@@ -1,0 +1,587 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.name }} - VHInternaltional</title>
+    <link rel="stylesheet" href="{% static 'home/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'home/css/product_detail.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-home"></i>
+                        <i class="fas fa-pencil-alt"></i>
+                    </div>
+                    <h1>VHInternaltional</h1>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="{% url 'home:index' %}">Home</a></li>
+                    <li><a href="{% url 'home:shop' %}">Shop</a></li>
+                    <li><a href="{% url 'home:about' %}">About</a></li>
+                    <li><a href="{% url 'home:contact' %}">Contact</a></li>
+                </ul>
+                <div class="nav-icons">
+                    <div class="user-menu-wrapper">
+                        <button class="icon-link user-icon-btn" onclick="toggleUserMenu(event)">
+                            <i class="fas fa-user"></i>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            {% if user.is_authenticated %}
+                                {% if user.is_staff or user.is_superuser or user.user_type == 'admin' or user.user_type == 'superadmin' %}
+                                    <div class="user-role-badge">Admin</div>
+                                {% endif %}
+                                <a href="#" class="dropdown-item active">
+                                    <i class="fas fa-user-circle"></i>
+                                    <span>My Profile</span>
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-box-open"></i>
+                                    <span>My Orders</span>
+                                </a>
+                                {% if user.is_staff or user.is_superuser or user.user_type == 'admin' or user.user_type == 'superadmin' %}
+                                    <a href="{% url 'admin_panel:dashboard' %}" class="dropdown-item">
+                                        <i class="fas fa-shopping-bag"></i>
+                                        <span>Manage Items</span>
+                                    </a>
+                                {% endif %}
+                                <div class="dropdown-divider"></div>
+                                <a href="{% url 'account:signout' %}" class="dropdown-item logout">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span>Logout</span>
+                                </a>
+                            {% else %}
+                                <a href="{% url 'account:signin' %}" class="dropdown-item">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                    <span>Sign In</span>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <a href="#" class="icon-link"><i class="fas fa-search"></i></a>
+                    <a href="#" class="icon-link"><i class="far fa-heart"></i></a>
+                    <a href="{% url 'home:cart' %}" class="icon-link cart-link">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-badge" id="cartBadge" style="display: none;">0</span>
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Breadcrumbs -->
+    <section class="breadcrumb-section">
+        <div class="container">
+            <nav class="breadcrumbs">
+                <a href="{% url 'home:index' %}">Home</a>
+                <span class="separator">></span>
+                <a href="{% url 'home:shop' %}">Shop</a>
+                <span class="separator">></span>
+                <span class="current">{{ product.name }}</span>
+            </nav>
+        </div>
+    </section>
+
+    <!-- Product Detail Section -->
+    <section class="product-detail-section">
+        <div class="container">
+            <div class="product-detail-grid">
+                <!-- Product Images -->
+                <div class="product-images">
+                    <div class="image-thumbnails">
+                        {% if product.img_url %}
+                            <div class="thumbnail active" onclick="changeMainImage('{{ product.img_url.url }}')">
+                                <img src="{{ product.img_url.url }}" alt="{{ product.name }}">
+                            </div>
+                        {% endif %}
+                        <!-- Additional thumbnails can be added here -->
+                    </div>
+                    <div class="main-image">
+                        {% if product.img_url %}
+                            <img src="{{ product.img_url.url }}" alt="{{ product.name }}" id="mainProductImage">
+                        {% else %}
+                            <div class="no-image">No Image Available</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Product Details -->
+                <div class="product-details">
+                    <h1 class="product-name">{{ product.name }}</h1>
+                    <div class="product-price">
+                        <span class="current-price">Rs. {{ product.discounted_price|floatformat:2|stringformat:"g" }}</span>
+                        {% if product.discount > 0 %}
+                            <span class="original-price">Rs. {{ product.cost|floatformat:2|stringformat:"g" }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="product-rating">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <span class="review-count">5 Customer Review</span>
+                    </div>
+
+                    <div class="product-description-short">
+                        <p>{{ product.description|default:"Experience premium quality and timeless design with this exceptional piece." }}</p>
+                    </div>
+
+                    <!-- Size Options -->
+                    <div class="product-options">
+                        <label class="option-label">Size</label>
+                        <div class="size-options">
+                            <button class="size-btn active" data-size="L">L</button>
+                            <button class="size-btn" data-size="XL">XL</button>
+                            <button class="size-btn" data-size="XS">XS</button>
+                        </div>
+                    </div>
+
+                    <!-- Color Options -->
+                    <div class="product-options">
+                        <label class="option-label">Color</label>
+                        <div class="color-options">
+                            <button class="color-btn active" data-color="purple" style="background: #8B5CF6;"></button>
+                            <button class="color-btn" data-color="black" style="background: #000;"></button>
+                            <button class="color-btn" data-color="gold" style="background: #F59E0B;"></button>
+                        </div>
+                    </div>
+
+                    <!-- Quantity Selector -->
+                    <div class="product-options">
+                        <label class="option-label">Quantity</label>
+                        <div class="quantity-selector">
+                            <button class="qty-btn" onclick="decreaseQuantity()">-</button>
+                            <input type="number" id="quantity" value="1" min="1" max="{{ product.quantity }}" readonly>
+                            <button class="qty-btn" onclick="increaseQuantity()">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="product-actions">
+                        <button class="btn-add-cart" onclick="addToCart()">
+                            <i class="fas fa-shopping-bag"></i> Add To Cart
+                        </button>
+                    </div>
+
+                    <!-- Product Info -->
+                    <div class="product-info">
+                        <div class="info-item">
+                            <span class="info-label">SKU:</span>
+                            <span class="info-value">{{ product.id|stringformat:"s"|slice:":8"|upper }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Category:</span>
+                            <span class="info-value">{{ product.product_category.category_name|default:"Uncategorized" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Tags:</span>
+                            <span class="info-value">Sofa, Chair, Home, Shop</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Share:</span>
+                            <div class="share-icons">
+                                <a href="#" class="share-icon"><i class="fab fa-facebook-f"></i></a>
+                                <a href="#" class="share-icon"><i class="fab fa-linkedin-in"></i></a>
+                                <a href="#" class="share-icon"><i class="fab fa-twitter"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Product Description Tabs -->
+    <section class="product-tabs-section">
+        <div class="container">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('description')">Description</button>
+                <button class="tab-btn" onclick="switchTab('additional')">Additional Information</button>
+                <button class="tab-btn" onclick="switchTab('reviews')">Reviews [5]</button>
+            </div>
+
+            <div class="tab-content active" id="descriptionTab">
+                <div class="tab-text">
+                    <p>{{ product.description|default:"Experience premium quality and timeless design with this exceptional piece. Crafted with attention to detail and using the finest materials, this product combines functionality with elegant aesthetics." }}</p>
+                    <p>Our commitment to quality ensures that every piece meets the highest standards of craftsmanship. This product is designed to last for generations, making it a valuable addition to your home.</p>
+                </div>
+                <div class="tab-images">
+                    {% if product.img_url %}
+                        <img src="{{ product.img_url.url }}" alt="{{ product.name }}">
+                    {% endif %}
+                    {% if product.img_url %}
+                        <img src="{{ product.img_url.url }}" alt="{{ product.name }}">
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="tab-content" id="additionalTab">
+                <div class="info-table">
+                    <div class="info-row">
+                        <span class="info-label">Weight</span>
+                        <span class="info-value">15 kg</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Dimensions</span>
+                        <span class="info-value">200 x 90 x 85 cm</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Material</span>
+                        <span class="info-value">Premium Wood & Fabric</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Color</span>
+                        <span class="info-value">Multiple Options Available</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="reviewsTab">
+                <div class="reviews-container">
+                    <div class="review-item">
+                        <div class="review-header">
+                            <div class="reviewer-name">John Doe</div>
+                            <div class="review-rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                        <div class="review-date">December 15, 2024</div>
+                        <div class="review-text">Excellent quality and fast delivery. Highly recommended!</div>
+                    </div>
+                    <div class="review-item">
+                        <div class="review-header">
+                            <div class="reviewer-name">Jane Smith</div>
+                            <div class="review-rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="far fa-star"></i>
+                            </div>
+                        </div>
+                        <div class="review-date">December 10, 2024</div>
+                        <div class="review-text">Beautiful design and comfortable. Very satisfied with my purchase.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Related Products Section -->
+    <section class="related-products-section">
+        <div class="container">
+            <h2 class="section-title">Related Products</h2>
+            <div class="products-grid">
+                {% for related_product in related_products %}
+                    <div class="product-card">
+                        <div class="product-image-wrapper">
+                            {% if related_product.img_url %}
+                                <img src="{{ related_product.img_url.url }}" alt="{{ related_product.name }}" class="product-image">
+                            {% else %}
+                                <div class="placeholder-img">No Image</div>
+                            {% endif %}
+                            
+                            {% if related_product.discount > 0 %}
+                                <span class="discount-badge">-{{ related_product.discount }}%</span>
+                            {% elif forloop.counter == 4 %}
+                                <span class="new-badge">New</span>
+                            {% endif %}
+                            
+                            <!-- Hover Overlay -->
+                            <div class="product-overlay">
+                                <button class="add-to-cart-btn" onclick="window.location.href='{% url 'home:product-detail' related_product.id %}'">View Details</button>
+                                    <div class="product-actions">
+                                        <a href="#" class="action-icon" title="Share"><i class="fas fa-share-alt"></i></a>
+                                        <a href="#" class="action-icon" title="Like"><i class="far fa-heart"></i></a>
+                                    </div>
+                            </div>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">{{ related_product.name }}</h3>
+                            <p class="product-description">{{ related_product.description|truncatewords:5|default:"Stylish furniture piece" }}</p>
+                            <div class="product-price">
+                                {% if related_product.discount > 0 %}
+                                    <span class="original-price">Rp {{ related_product.cost|floatformat:0|stringformat:"g" }}</span>
+                                {% endif %}
+                                <span class="current-price">Rp {{ related_product.discounted_price|floatformat:0|stringformat:"g" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="no-products">No related products found.</p>
+                {% endfor %}
+            </div>
+            <div class="load-more-container">
+                <a href="{% url 'home:shop' %}" class="btn btn-outline">Show More</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>VHInternaltional</h3>
+                    <p>Asdullapur, Sultanpur Dost, Moradabad<br>
+                        244001, Uttar Pradesh</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Links</h4>
+                    <ul>
+                        <li><a href="{% url 'home:index' %}">Home</a></li>
+                        <li><a href="{% url 'home:shop' %}">Shop</a></li>
+                        <li><a href="{% url 'home:about' %}">About</a></li>
+                        <li><a href="{% url 'home:contact' %}">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Help</h4>
+                    <ul>
+                        <li><a href="#">Payment Options</a></li>
+                        <li><a href="{% url 'home:return-policy' %}">Returns</a></li>
+                        <li><a href="{% url 'home:privacy-policy' %}">Privacy Policies</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Newsletter</h4>
+                    <form class="newsletter-form">
+                        <input type="email" placeholder="Enter Your Email Address" required>
+                        <button type="submit" class="btn btn-primary">SUBSCRIBE</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>2025 furino. All rights reverved</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // User dropdown toggle
+        function toggleUserMenu(event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('userDropdown');
+            const button = document.querySelector('.user-icon-btn');
+            if (dropdown && button && !dropdown.contains(event.target) && !button.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        // Image thumbnail click
+        function changeMainImage(imageUrl) {
+            document.getElementById('mainProductImage').src = imageUrl;
+            document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+
+        // Quantity controls
+        function increaseQuantity() {
+            const qtyInput = document.getElementById('quantity');
+            const max = parseInt(qtyInput.getAttribute('max'));
+            const current = parseInt(qtyInput.value);
+            if (current < max) {
+                qtyInput.value = current + 1;
+            }
+        }
+
+        function decreaseQuantity() {
+            const qtyInput = document.getElementById('quantity');
+            const current = parseInt(qtyInput.value);
+            if (current > 1) {
+                qtyInput.value = current - 1;
+            }
+        }
+
+        // Size selection
+        document.querySelectorAll('.size-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Color selection
+        document.querySelectorAll('.color-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+            // Show selected tab
+            if (tabName === 'description') {
+                document.getElementById('descriptionTab').classList.add('active');
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+            } else if (tabName === 'additional') {
+                document.getElementById('additionalTab').classList.add('active');
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            } else if (tabName === 'reviews') {
+                document.getElementById('reviewsTab').classList.add('active');
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
+            }
+        }
+
+        // Add to cart using API
+        async function addToCart() {
+            const quantity = document.getElementById('quantity').value;
+            const size = document.querySelector('.size-btn.active')?.dataset.size || 'L';
+            const color = document.querySelector('.color-btn.active')?.dataset.color || 'purple';
+            const productId = '{{ product.id }}';
+            
+            // Create cart item data
+            const cartItem = {
+                product_id: productId,
+                quantity: parseInt(quantity),
+                size: size || '',
+                color: color || ''
+            };
+            
+            try {
+                const response = await fetch('/api/cart/add/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify(cartItem)
+                });
+                
+                if (response.ok) {
+                    // Update cart count in header
+                    await updateCartCount();
+                    
+                    // Show success message
+                    showCartNotification('Product added to cart!');
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Failed to add product to cart');
+                }
+            } catch (error) {
+                console.error('Error adding to cart:', error);
+                alert('Error adding product to cart');
+            }
+        }
+        
+        // Update cart count in header
+        async function updateCartCount() {
+            try {
+                const response = await fetch('/api/cart/');
+                if (response.ok) {
+                    const data = await response.json();
+                    const totalItems = data.total_items || 0;
+                    const cartIcon = document.querySelector('.fa-shopping-cart');
+                    if (cartIcon) {
+                        let badge = cartIcon.parentElement.querySelector('.cart-badge');
+                        if (!badge) {
+                            badge = document.createElement('span');
+                            badge.className = 'cart-badge';
+                            cartIcon.parentElement.style.position = 'relative';
+                            cartIcon.parentElement.appendChild(badge);
+                        }
+                        badge.textContent = totalItems;
+                        badge.style.cssText = 'position: absolute; top: -8px; right: -8px; background: #B88E2F; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;';
+                        badge.style.display = totalItems > 0 ? 'flex' : 'none';
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating cart count:', error);
+            }
+        }
+        
+        // Get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        // Show cart notification
+        function showCartNotification(message) {
+            // Remove existing notification if any
+            const existing = document.querySelector('.cart-notification');
+            if (existing) existing.remove();
+            
+            // Create notification
+            const notification = document.createElement('div');
+            notification.className = 'cart-notification';
+            notification.textContent = message;
+            notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #B88E2F; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10000; font-weight: 600; animation: slideIn 0.3s ease;';
+            
+            document.body.appendChild(notification);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+        
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Update cart count on page load
+        updateCartCount();
+
+    </script>
+</body>
+</html>
+

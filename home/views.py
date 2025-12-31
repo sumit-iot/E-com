@@ -101,3 +101,53 @@ def about_view(request):
 def contact_view(request):
     """Contact page view"""
     return render(request, 'home/contact.html')
+
+
+def product_detail_view(request, product_id):
+    """Product detail page view"""
+    try:
+        product = Product.objects.select_related('product_category').get(id=product_id, is_active=True)
+        
+        # Get related products (same category, excluding current product)
+        related_products = Product.objects.filter(
+            is_active=True,
+            product_category=product.product_category
+        ).exclude(id=product.id)[:4]
+        
+        # If not enough related products, get any active products
+        if related_products.count() < 4:
+            additional = Product.objects.filter(is_active=True).exclude(id=product.id)[:4-related_products.count()]
+            related_products = list(related_products) + list(additional)
+        
+        context = {
+            'product': product,
+            'related_products': related_products,
+        }
+        return render(request, 'home/product_detail.html', context)
+    except Product.DoesNotExist:
+        from django.http import Http404
+        raise Http404("Product not found")
+
+
+def cart_view(request):
+    """Cart page view"""
+    return render(request, 'home/cart.html')
+
+
+def checkout_view(request):
+    """Checkout page view"""
+    return render(request, 'home/checkout.html')
+
+
+def order_confirmation_view(request, order_id):
+    """Order confirmation page view"""
+    from .models import Order
+    try:
+        order = Order.objects.get(id=order_id, user=request.user)
+        context = {
+            'order': order,
+        }
+        return render(request, 'home/order_confirmation.html', context)
+    except Order.DoesNotExist:
+        from django.http import Http404
+        raise Http404("Order not found")

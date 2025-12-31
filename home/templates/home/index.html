@@ -65,7 +65,10 @@
                     </div>
                     <a href="#" class="icon-link"><i class="fas fa-search"></i></a>
                     <a href="#" class="icon-link"><i class="far fa-heart"></i></a>
-                    <a href="#" class="icon-link"><i class="fas fa-shopping-cart"></i></a>
+                    <a href="{% url 'home:cart' %}" class="icon-link cart-link">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-badge" id="cartBadge" style="display: none;">0</span>
+                    </a>
                 </div>
             </nav>
         </div>
@@ -260,30 +263,31 @@
                         
                         return `
                         <div class="product-card">
-                            <div class="product-image-wrapper">
-                                ${product.img_url ? `<img src="${product.img_url}" alt="${product.name}" class="product-image">` : '<div class="placeholder-img">No Image</div>'}
-                                
-                                ${product.discount > 0 ? `<span class="discount-badge">-${product.discount}%</span>` : ''}
-                                ${showNewBadge && !product.discount ? `<span class="new-badge">New</span>` : ''}
-                                
-                                <!-- Hover Overlay -->
-                                <div class="product-overlay">
-                                    <button class="add-to-cart-btn">Add to cart</button>
-                                    <div class="product-actions">
-                                        <a href="#" class="action-icon" title="Share"><i class="fas fa-share-alt"></i></a>
-                                        <a href="#" class="action-icon" title="Compare"><i class="fas fa-exchange-alt"></i></a>
-                                        <a href="#" class="action-icon" title="Like"><i class="far fa-heart"></i></a>
+                            <a href="/product/${product.id}/" class="product-link">
+                                <div class="product-image-wrapper">
+                                    ${product.img_url ? `<img src="${product.img_url}" alt="${product.name}" class="product-image">` : '<div class="placeholder-img">No Image</div>'}
+                                    
+                                    ${product.discount > 0 ? `<span class="discount-badge">-${product.discount}%</span>` : ''}
+                                    ${showNewBadge && !product.discount ? `<span class="new-badge">New</span>` : ''}
+                                    
+                                    <!-- Hover Overlay -->
+                                    <div class="product-overlay">
+                                        <button class="add-to-cart-btn" onclick="event.preventDefault(); window.location.href='/product/${product.id}/'">View Details</button>
+                                        <div class="product-actions">
+                                            <a href="#" class="action-icon" title="Share" onclick="event.preventDefault();"><i class="fas fa-share-alt"></i></a>
+                                            <a href="#" class="action-icon" title="Like" onclick="event.preventDefault();"><i class="far fa-heart"></i></a>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="product-info">
-                                <h3 class="product-name">${product.name}</h3>
-                                <p class="product-description">${product.description ? product.description.substring(0, 50) + '...' : 'Stylish furniture piece'}</p>
-                                <div class="product-price">
-                                    ${product.discount > 0 ? `<span class="original-price">Rp ${parseInt(product.cost).toLocaleString('id-ID')}</span>` : ''}
-                                    <span class="current-price">Rp ${parseInt(discountedPrice).toLocaleString('id-ID')}</span>
+                                <div class="product-info">
+                                    <h3 class="product-name">${product.name}</h3>
+                                    <p class="product-description">${product.description ? product.description.substring(0, 50) + '...' : 'Stylish furniture piece'}</p>
+                                    <div class="product-price">
+                                        ${product.discount > 0 ? `<span class="original-price">Rp ${parseInt(product.cost).toLocaleString('id-ID')}</span>` : ''}
+                                        <span class="current-price">Rp ${parseInt(discountedPrice).toLocaleString('id-ID')}</span>
+                                    </div>
                                 </div>
-                            </div>
+                            </a>
                         </div>
                     `;
                     }).join('');

@@ -1,0 +1,399 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart - VHInternaltional</title>
+    <link rel="stylesheet" href="{% static 'home/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'home/css/cart.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-home"></i>
+                        <i class="fas fa-pencil-alt"></i>
+                    </div>
+                    <h1>VHInternaltional</h1>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="{% url 'home:index' %}">Home</a></li>
+                    <li><a href="{% url 'home:shop' %}">Shop</a></li>
+                    <li><a href="{% url 'home:about' %}">About</a></li>
+                    <li><a href="{% url 'home:contact' %}">Contact</a></li>
+                </ul>
+                <div class="nav-icons">
+                    <div class="user-menu-wrapper">
+                        <button class="icon-link user-icon-btn" onclick="toggleUserMenu(event)">
+                            <i class="fas fa-user"></i>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            {% if user.is_authenticated %}
+                                {% if user.is_staff or user.is_superuser or user.user_type == 'admin' or user.user_type == 'superadmin' %}
+                                    <div class="user-role-badge">Admin</div>
+                                {% endif %}
+                                <a href="#" class="dropdown-item active">
+                                    <i class="fas fa-user-circle"></i>
+                                    <span>My Profile</span>
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-box-open"></i>
+                                    <span>My Orders</span>
+                                </a>
+                                {% if user.is_staff or user.is_superuser or user.user_type == 'admin' or user.user_type == 'superadmin' %}
+                                    <a href="{% url 'admin_panel:dashboard' %}" class="dropdown-item">
+                                        <i class="fas fa-shopping-bag"></i>
+                                        <span>Manage Items</span>
+                                    </a>
+                                {% endif %}
+                                <div class="dropdown-divider"></div>
+                                <a href="{% url 'account:signout' %}" class="dropdown-item logout">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span>Logout</span>
+                                </a>
+                            {% else %}
+                                <a href="{% url 'account:signin' %}" class="dropdown-item">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                    <span>Sign In</span>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <a href="#" class="icon-link"><i class="fas fa-search"></i></a>
+                    <a href="#" class="icon-link"><i class="far fa-heart"></i></a>
+                    <a href="{% url 'home:cart' %}" class="icon-link cart-link">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-badge" id="cartBadge">0</span>
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Cart Hero Section -->
+    <section class="cart-hero">
+        <div class="hero-background"></div>
+        <div class="hero-background-overlay"></div>
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-icon">
+                    <svg width="77" height="77" viewBox="0 0 77 77" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="38.5" cy="38.5" r="38.5" fill="#B88E2F"/>
+                        <path d="M38.5 20L45.5 35H55L42.5 50H34.5L22 35H31.5L38.5 20Z" fill="white"/>
+                    </svg>
+                </div>
+                <div class="hero-text">
+                    <h1 class="hero-title">Cart</h1>
+                    <nav class="breadcrumbs">
+                        <a href="{% url 'home:index' %}">Home</a>
+                        <span class="separator">></span>
+                        <span class="current">Cart</span>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cart Section -->
+    <section class="cart-section">
+        <div class="container">
+            <div class="cart-layout">
+                <!-- Cart Items -->
+                <div class="cart-items">
+                    <div class="cart-table-header">
+                        <div class="header-cell product-col">Product</div>
+                        <div class="header-cell price-col">Price</div>
+                        <div class="header-cell quantity-col">Quantity</div>
+                        <div class="header-cell subtotal-col">Subtotal</div>
+                    </div>
+                    <div class="cart-items-list" id="cartItemsList">
+                        <!-- Cart items will be loaded here -->
+                        <div class="loading-message">Loading cart...</div>
+                    </div>
+                </div>
+
+                <!-- Cart Totals -->
+                <div class="cart-totals">
+                    <h2 class="totals-title">Cart Totals</h2>
+                    <div class="totals-row">
+                        <span class="totals-label">Subtotal</span>
+                        <span class="totals-value" id="cartSubtotal">Rs. 0.00</span>
+                    </div>
+                    <div class="totals-row total-row">
+                        <span class="totals-label">Total</span>
+                        <span class="totals-value total-value" id="cartTotal">Rs. 0.00</span>
+                    </div>
+                    <button class="btn-checkout" id="checkoutBtn" onclick="checkout()">Check Out</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>High Quality</h3>
+                        <p>crafted from top materials</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Warranty Protection</h3>
+                        <p>Over 2 years</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Free Shipping</h3>
+                        <p>Order over 150 $</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>24 / 7 Support</h3>
+                        <p>Dedicated support</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>VHInternaltional</h3>
+                    <p>Asdullapur, Sultanpur Dost, Moradabad<br>
+                        244001, Uttar Pradesh</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Links</h4>
+                    <ul>
+                        <li><a href="{% url 'home:index' %}">Home</a></li>
+                        <li><a href="{% url 'home:shop' %}">Shop</a></li>
+                        <li><a href="{% url 'home:about' %}">About</a></li>
+                        <li><a href="{% url 'home:contact' %}">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Help</h4>
+                    <ul>
+                        <li><a href="#">Payment Options</a></li>
+                        <li><a href="{% url 'home:return-policy' %}">Returns</a></li>
+                        <li><a href="{% url 'home:privacy-policy' %}">Privacy Policies</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Newsletter</h4>
+                    <form class="newsletter-form">
+                        <input type="email" placeholder="Enter Your Email Address" required>
+                        <button type="submit" class="btn btn-primary">SUBSCRIBE</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>2025 furino. All rights reverved</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // User dropdown toggle
+        function toggleUserMenu(event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('userDropdown');
+            const button = document.querySelector('.user-icon-btn');
+            if (dropdown && button && !dropdown.contains(event.target) && !button.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        // Load cart items
+        async function loadCart() {
+            try {
+                const response = await fetch('/api/cart/');
+                const data = await response.json();
+                
+                const cartItemsList = document.getElementById('cartItemsList');
+                const cartSubtotal = document.getElementById('cartSubtotal');
+                const cartTotal = document.getElementById('cartTotal');
+                const cartBadge = document.getElementById('cartBadge');
+                
+                if (data.items && data.items.length > 0) {
+                    cartItemsList.innerHTML = data.items.map(item => {
+                        const product = item.product;
+                        const imgUrl = product.img_url || '';
+                        const price = parseFloat(item.subtotal / item.quantity).toFixed(2);
+                        const subtotal = parseFloat(item.subtotal).toFixed(2);
+                        
+                        return `
+                            <div class="cart-item" data-item-id="${item.id}">
+                                <div class="item-cell product-cell">
+                                    <div class="product-info">
+                                        <div class="product-image">
+                                            ${imgUrl ? `<img src="${imgUrl}" alt="${product.name}">` : '<div class="no-image">No Image</div>'}
+                                        </div>
+                                        <div class="product-details">
+                                            <h3 class="product-name">${product.name}</h3>
+                                            ${item.size ? `<span class="product-attr">Size: ${item.size}</span>` : ''}
+                                            ${item.color ? `<span class="product-attr">Color: ${item.color}</span>` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="item-cell price-cell">
+                                    <span class="item-price">Rs. ${parseFloat(price).toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
+                                </div>
+                                <div class="item-cell quantity-cell">
+                                    <div class="quantity-selector">
+                                        <button class="qty-btn" onclick="updateQuantity('${item.id}', ${item.quantity - 1})">-</button>
+                                        <input type="number" class="qty-input" value="${item.quantity}" min="1" max="${product.quantity}" 
+                                               onchange="updateQuantity('${item.id}', this.value)" 
+                                               onkeyup="if(event.key==='Enter') updateQuantity('${item.id}', this.value)">
+                                        <button class="qty-btn" onclick="updateQuantity('${item.id}', ${item.quantity + 1})">+</button>
+                                    </div>
+                                </div>
+                                <div class="item-cell subtotal-cell">
+                                    <span class="item-subtotal">Rs. ${parseFloat(subtotal).toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
+                                    <button class="remove-btn" onclick="removeItem('${item.id}')" title="Remove item">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    const subtotalValue = parseFloat(data.subtotal || 0).toFixed(2);
+                    cartSubtotal.textContent = `Rs. ${parseFloat(subtotalValue).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+                    cartTotal.textContent = `Rs. ${parseFloat(subtotalValue).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+                    
+                    const totalItems = data.total_items || 0;
+                    cartBadge.textContent = totalItems;
+                    cartBadge.style.display = totalItems > 0 ? 'flex' : 'none';
+                } else {
+                    cartItemsList.innerHTML = '<div class="empty-cart"><p>Your cart is empty</p><a href="{% url "home:shop" %}" class="btn btn-primary">Continue Shopping</a></div>';
+                    cartSubtotal.textContent = 'Rs. 0.00';
+                    cartTotal.textContent = 'Rs. 0.00';
+                    cartBadge.style.display = 'none';
+                    document.getElementById('checkoutBtn').disabled = true;
+                }
+            } catch (error) {
+                console.error('Error loading cart:', error);
+                document.getElementById('cartItemsList').innerHTML = '<div class="error-message">Error loading cart. Please refresh the page.</div>';
+            }
+        }
+
+        // Update quantity
+        async function updateQuantity(itemId, quantity) {
+            quantity = parseInt(quantity);
+            if (quantity < 1) {
+                removeItem(itemId);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/cart/items/${itemId}/`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ quantity: quantity })
+                });
+                
+                if (response.ok) {
+                    loadCart();
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Failed to update quantity');
+                }
+            } catch (error) {
+                console.error('Error updating quantity:', error);
+                alert('Error updating quantity');
+            }
+        }
+
+        // Remove item
+        async function removeItem(itemId) {
+            if (!confirm('Are you sure you want to remove this item from cart?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/cart/items/${itemId}/remove/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+                
+                if (response.ok) {
+                    loadCart();
+                } else {
+                    alert('Failed to remove item');
+                }
+            } catch (error) {
+                console.error('Error removing item:', error);
+                alert('Error removing item');
+            }
+        }
+
+        // Checkout
+        function checkout() {
+            {% if user.is_authenticated %}
+                // Redirect to checkout page
+                window.location.href = '{% url "home:checkout" %}';
+            {% else %}
+                // Redirect to login
+                window.location.href = '{% url "account:signin" %}?next={% url "home:checkout" %}';
+            {% endif %}
+        }
+
+        // Get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Load cart on page load
+        loadCart();
+    </script>
+</body>
+</html>
+

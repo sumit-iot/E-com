@@ -11,5 +11,9 @@ urlpatterns = [
     path('privacy-policy/', views.privacy_policy_view, name='privacy-policy'),
     path('about/', views.about_view, name='about'),
     path('contact/', views.contact_view, name='contact'),
+    path('product/<uuid:product_id>/', views.product_detail_view, name='product-detail'),
+    path('cart/', views.cart_view, name='cart'),
+    path('checkout/', views.checkout_view, name='checkout'),
+    path('order/<uuid:order_id>/', views.order_confirmation_view, name='order-confirmation'),
 ]
 

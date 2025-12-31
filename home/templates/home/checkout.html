@@ -1,0 +1,471 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - VHInternaltional</title>
+    <link rel="stylesheet" href="{% static 'home/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'home/css/checkout.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-home"></i>
+                        <i class="fas fa-pencil-alt"></i>
+                    </div>
+                    <h1>VHInternaltional</h1>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="{% url 'home:index' %}">Home</a></li>
+                    <li><a href="{% url 'home:shop' %}">Shop</a></li>
+                    <li><a href="{% url 'home:about' %}">About</a></li>
+                    <li><a href="{% url 'home:contact' %}">Contact</a></li>
+                </ul>
+                <div class="nav-icons">
+                    <div class="user-menu-wrapper">
+                        <button class="icon-link user-icon-btn" onclick="toggleUserMenu(event)">
+                            <i class="fas fa-user"></i>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            {% if user.is_authenticated %}
+                                {% if user.is_staff or user.is_superuser or user.user_type == 'admin' or user.user_type == 'superadmin' %}
+                                    <div class="user-role-badge">Admin</div>
+                                {% endif %}
+                                <a href="#" class="dropdown-item active">
+                                    <i class="fas fa-user-circle"></i>
+                                    <span>My Profile</span>
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-box-open"></i>
+                                    <span>My Orders</span>
+                                </a>
+                                {% if user.is_staff or user.is_superuser or user.user_type == 'admin' or user.user_type == 'superadmin' %}
+                                    <a href="{% url 'admin_panel:dashboard' %}" class="dropdown-item">
+                                        <i class="fas fa-shopping-bag"></i>
+                                        <span>Manage Items</span>
+                                    </a>
+                                {% endif %}
+                                <div class="dropdown-divider"></div>
+                                <a href="{% url 'account:signout' %}" class="dropdown-item logout">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span>Logout</span>
+                                </a>
+                            {% else %}
+                                <a href="{% url 'account:signin' %}" class="dropdown-item">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                    <span>Sign In</span>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <a href="#" class="icon-link"><i class="fas fa-search"></i></a>
+                    <a href="#" class="icon-link"><i class="far fa-heart"></i></a>
+                    <a href="{% url 'home:cart' %}" class="icon-link cart-link">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-badge" id="cartBadge" style="display: none;">0</span>
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Checkout Hero Section -->
+    <section class="checkout-hero">
+        <div class="hero-background"></div>
+        <div class="hero-background-overlay"></div>
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-icon">
+                    <svg width="77" height="77" viewBox="0 0 77 77" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="38.5" cy="38.5" r="38.5" fill="#B88E2F"/>
+                        <path d="M38.5 20L45.5 35H55L42.5 50H34.5L22 35H31.5L38.5 20Z" fill="white"/>
+                    </svg>
+                </div>
+                <div class="hero-text">
+                    <h1 class="hero-title">Checkout</h1>
+                    <nav class="breadcrumbs">
+                        <a href="{% url 'home:index' %}">Home</a>
+                        <span class="separator">></span>
+                        <span class="current">Checkout</span>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Checkout Section -->
+    <section class="checkout-section">
+        <div class="container">
+            <div class="checkout-layout">
+                <!-- Billing Details Form -->
+                <div class="billing-details">
+                    <h2 class="section-title">Billing details</h2>
+                    <form id="checkoutForm" class="checkout-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="firstName">First Name <span class="required">*</span></label>
+                                <input type="text" id="firstName" name="firstName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="lastName">Last Name <span class="required">*</span></label>
+                                <input type="text" id="lastName" name="lastName" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="companyName">Company Name (Optional)</label>
+                            <input type="text" id="companyName" name="companyName">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="country">Country / Region <span class="required">*</span></label>
+                            <select id="country" name="country" required>
+                                <option value="India">India</option>
+                                <option value="Sri Lanka">Sri Lanka</option>
+                                <option value="United States">United States</option>
+                                <option value="United Kingdom">United Kingdom</option>
+                                <option value="Canada">Canada</option>
+                                <option value="Australia">Australia</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="streetAddress">Street address <span class="required">*</span></label>
+                            <input type="text" id="streetAddress" name="streetAddress" placeholder="House number and street name" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="city">Town / City <span class="required">*</span></label>
+                            <input type="text" id="city" name="city" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="province">Province <span class="required">*</span></label>
+                            <select id="province" name="province" required>
+                                <option value="">Select Province</option>
+                                <option value="Uttar Pradesh">Uttar Pradesh</option>
+                                <option value="Delhi">Delhi</option>
+                                <option value="Maharashtra">Maharashtra</option>
+                                <option value="Karnataka">Karnataka</option>
+                                <option value="Tamil Nadu">Tamil Nadu</option>
+                                <option value="Western Province">Western Province</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="zipCode">ZIP code <span class="required">*</span></label>
+                            <input type="text" id="zipCode" name="zipCode" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="phone">Phone <span class="required">*</span></label>
+                            <input type="tel" id="phone" name="phone" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email">Email address <span class="required">*</span></label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="additionalInfo">Additional information</label>
+                            <textarea id="additionalInfo" name="additionalInfo" rows="4" placeholder="Additional information"></textarea>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="order-summary">
+                    <h2 class="section-title">Product</h2>
+                    <div class="order-items" id="orderItems">
+                        <!-- Order items will be loaded here -->
+                        <div class="loading-message">Loading order summary...</div>
+                    </div>
+                    
+                    <div class="order-totals">
+                        <div class="total-row">
+                            <span class="total-label">Subtotal</span>
+                            <span class="total-value" id="orderSubtotal">Rs. 0.00</span>
+                        </div>
+                        <div class="total-row final-total">
+                            <span class="total-label">Total</span>
+                            <span class="total-value" id="orderTotal">Rs. 0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div class="payment-method">
+                        <h3 class="payment-title">Payment Method</h3>
+                        <div class="payment-options">
+                            <div class="payment-option">
+                                <input type="radio" id="bankTransfer" name="paymentMethod" value="bank_transfer" checked>
+                                <label for="bankTransfer">
+                                    <span class="radio-label">Direct Bank Transfer</span>
+                                    <p class="payment-description">Make your payment directly into our bank account. Please use your Order ID as the payment reference. Your order will not be shipped until the funds have cleared in our account.</p>
+                                </label>
+                            </div>
+                            <div class="payment-option">
+                                <input type="radio" id="cashOnDelivery" name="paymentMethod" value="cash_on_delivery">
+                                <label for="cashOnDelivery">
+                                    <span class="radio-label">Cash On Delivery</span>
+                                    <p class="payment-description">Pay with cash when your order is delivered.</p>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Privacy Policy -->
+                    <div class="privacy-policy">
+                        <p>Your personal data will be used to support your experience throughout this website, to manage access to your account, and for other purposes described in our <a href="{% url 'home:privacy-policy' %}">privacy policy</a>.</p>
+                    </div>
+
+                    <!-- Place Order Button -->
+                    <button type="button" class="btn-place-order" id="placeOrderBtn" onclick="placeOrder()">Place order</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>High Quality</h3>
+                        <p>crafted from top materials</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Warranty Protection</h3>
+                        <p>Over 2 years</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Free Shipping</h3>
+                        <p>Order over 150 $</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>24 / 7 Support</h3>
+                        <p>Dedicated support</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>VHInternaltional</h3>
+                    <p>Asdullapur, Sultanpur Dost, Moradabad<br>
+                        244001, Uttar Pradesh</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Links</h4>
+                    <ul>
+                        <li><a href="{% url 'home:index' %}">Home</a></li>
+                        <li><a href="{% url 'home:shop' %}">Shop</a></li>
+                        <li><a href="{% url 'home:about' %}">About</a></li>
+                        <li><a href="{% url 'home:contact' %}">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Help</h4>
+                    <ul>
+                        <li><a href="#">Payment Options</a></li>
+                        <li><a href="{% url 'home:return-policy' %}">Returns</a></li>
+                        <li><a href="{% url 'home:privacy-policy' %}">Privacy Policies</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Newsletter</h4>
+                    <form class="newsletter-form">
+                        <input type="email" placeholder="Enter Your Email Address" required>
+                        <button type="submit" class="btn btn-primary">SUBSCRIBE</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>2025 furino. All rights reverved</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // User dropdown toggle
+        function toggleUserMenu(event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('userDropdown');
+            const button = document.querySelector('.user-icon-btn');
+            if (dropdown && button && !dropdown.contains(event.target) && !button.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        // Load cart items for order summary
+        async function loadOrderSummary() {
+            try {
+                const response = await fetch('/api/cart/');
+                const data = await response.json();
+                
+                const orderItems = document.getElementById('orderItems');
+                const orderSubtotal = document.getElementById('orderSubtotal');
+                const orderTotal = document.getElementById('orderTotal');
+                
+                if (data.items && data.items.length > 0) {
+                    orderItems.innerHTML = data.items.map(item => {
+                        const product = item.product;
+                        return `
+                            <div class="order-item">
+                                <span class="item-name">${product.name}${item.size ? ' - ' + item.size : ''}${item.color ? ' - ' + item.color : ''}</span>
+                                <span class="item-quantity">x ${item.quantity}</span>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    const subtotalValue = parseFloat(data.subtotal || 0).toFixed(2);
+                    orderSubtotal.textContent = `Rs. ${parseFloat(subtotalValue).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+                    orderTotal.textContent = `Rs. ${parseFloat(subtotalValue).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+                    
+                    // Update cart badge
+                    const totalItems = data.total_items || 0;
+                    const cartBadge = document.getElementById('cartBadge');
+                    if (cartBadge) {
+                        cartBadge.textContent = totalItems;
+                        cartBadge.style.display = totalItems > 0 ? 'flex' : 'none';
+                    }
+                } else {
+                    orderItems.innerHTML = '<div class="empty-cart"><p>Your cart is empty</p><a href="{% url "home:shop" %}" class="btn btn-primary">Continue Shopping</a></div>';
+                    orderSubtotal.textContent = 'Rs. 0.00';
+                    orderTotal.textContent = 'Rs. 0.00';
+                    document.getElementById('placeOrderBtn').disabled = true;
+                }
+            } catch (error) {
+                console.error('Error loading order summary:', error);
+                document.getElementById('orderItems').innerHTML = '<div class="error-message">Error loading order summary. Please refresh the page.</div>';
+            }
+        }
+
+        // Place order
+        async function placeOrder() {
+            {% if not user.is_authenticated %}
+                window.location.href = '{% url "account:signin" %}?next={% url "home:checkout" %}';
+                return;
+            {% endif %}
+            
+            // Validate form
+            const form = document.getElementById('checkoutForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            // Get form data
+            const formData = {
+                shipping_name: `${document.getElementById('firstName').value} ${document.getElementById('lastName').value}`,
+                shipping_address: document.getElementById('streetAddress').value,
+                shipping_city: document.getElementById('city').value,
+                shipping_state: document.getElementById('province').value,
+                shipping_postal_code: document.getElementById('zipCode').value,
+                shipping_country: document.getElementById('country').value,
+                shipping_phone: document.getElementById('phone').value,
+                shipping_cost: 0,
+                tax: 0
+            };
+            
+            // Disable button
+            const btn = document.getElementById('placeOrderBtn');
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+            
+            try {
+                const response = await fetch('/api/orders/create/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (response.ok) {
+                    const order = await response.json();
+                    // Redirect to order confirmation page
+                    window.location.href = `/order/${order.id}/`;
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Failed to place order. Please try again.');
+                    btn.disabled = false;
+                    btn.textContent = 'Place order';
+                }
+            } catch (error) {
+                console.error('Error placing order:', error);
+                alert('Error placing order. Please try again.');
+                btn.disabled = false;
+                btn.textContent = 'Place order';
+            }
+        }
+
+        // Get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Pre-fill form if user is authenticated
+        {% if user.is_authenticated %}
+            document.getElementById('firstName').value = '{{ user.first_name|default:"" }}';
+            document.getElementById('lastName').value = '{{ user.last_name|default:"" }}';
+            document.getElementById('email').value = '{{ user.email|default:"" }}';
+            {% if user.mobile %}
+                document.getElementById('phone').value = '{{ user.mobile }}';
+            {% endif %}
+        {% endif %}
+
+        // Load order summary on page load
+        loadOrderSummary();
+    </script>
+</body>
+</html>
+
