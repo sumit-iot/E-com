@@ -1,0 +1,174 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipping Information - VHInternaltional</title>
+    <link rel="stylesheet" href="{% static 'home/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'home/css/shipping_info.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <h1>VHInternaltional</h1>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="{% url 'home:index' %}">Home</a></li>
+                    <li><a href="{% url 'home:shop' %}">Shop</a></li>
+                    <li><a href="{% url 'home:about' %}">About</a></li>
+                    <li><a href="{% url 'home:contact' %}">Contact</a></li>
+                </ul>
+                <div class="nav-icons">
+                    <div class="user-menu-wrapper">
+                        <button class="icon-link user-icon-btn" onclick="toggleUserMenu(event)">
+                            <i class="fas fa-user"></i>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            {% if user.is_authenticated %}
+                                {% if user.is_staff or user.is_superuser or user.user_type == 'admin' or user.user_type == 'superadmin' %}
+                                    <div class="user-role-badge">Admin</div>
+                                {% endif %}
+                                <a href="#" class="dropdown-item active">
+                                    <i class="fas fa-user-circle"></i>
+                                    <span>My Profile</span>
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-box-open"></i>
+                                    <span>My Orders</span>
+                                </a>
+                                {% if user.is_staff or user.is_superuser or user.user_type == 'admin' or user.user_type == 'superadmin' %}
+                                    <a href="{% url 'admin_panel:dashboard' %}" class="dropdown-item">
+                                        <i class="fas fa-shopping-bag"></i>
+                                        <span>Manage Items</span>
+                                    </a>
+                                {% endif %}
+                                <div class="dropdown-divider"></div>
+                                <a href="{% url 'account:signout' %}" class="dropdown-item logout">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span>Logout</span>
+                                </a>
+                            {% else %}
+                                <a href="{% url 'account:signin' %}" class="dropdown-item">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                    <span>Sign In</span>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <a href="#" class="icon-link"><i class="fas fa-search"></i></a>
+                    <a href="#" class="icon-link"><i class="far fa-heart"></i></a>
+                    <a href="#" class="icon-link"><i class="fas fa-shopping-cart"></i></a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Shipping Info Section -->
+    <section class="shipping-section">
+        <div class="container">
+            <h1 class="page-title">Shipping Information</h1>
+            <div class="shipping-content">
+                <h2>Shipping Options</h2>
+                <div class="shipping-options">
+                    <div class="option-card">
+                        <i class="fas fa-truck"></i>
+                        <h3>Standard Shipping</h3>
+                        <p>5-7 business days</p>
+                        <p class="price">Free on orders over ₹5000</p>
+                    </div>
+                    <div class="option-card">
+                        <i class="fas fa-shipping-fast"></i>
+                        <h3>Express Shipping</h3>
+                        <p>2-3 business days</p>
+                        <p class="price">₹500</p>
+                    </div>
+                    <div class="option-card">
+                        <i class="fas fa-rocket"></i>
+                        <h3>Next Day Delivery</h3>
+                        <p>1 business day</p>
+                        <p class="price">₹1000</p>
+                    </div>
+                </div>
+
+                <h2>Shipping Process</h2>
+                <ol>
+                    <li>Order is processed within 1-2 business days</li>
+                    <li>You'll receive a confirmation email with tracking information</li>
+                    <li>Your order is packed and shipped from our warehouse</li>
+                    <li>Track your order using the provided tracking number</li>
+                    <li>Receive your order at your doorstep</li>
+                </ol>
+
+                <h2>International Shipping</h2>
+                <p>We currently ship to select international destinations. Shipping costs and delivery times vary by location. Please contact us for more information.</p>
+
+                <h2>Order Tracking</h2>
+                <p>Once your order ships, you'll receive an email with a tracking number. You can track your order status in real-time using our tracking system.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>VHInternaltional</h3>
+                    <p>400 University Drive Suite 200 Coral Gables, FL 33134 USA</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Links</h4>
+                    <ul>
+                        <li><a href="{% url 'home:index' %}">Home</a></li>
+                        <li><a href="{% url 'home:shop' %}">Shop</a></li>
+                        <li><a href="{% url 'home:about' %}">About</a></li>
+                        <li><a href="{% url 'home:contact' %}">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Help</h4>
+                    <ul>
+                        <li><a href="{% url 'home:shipping-info' %}">Shipping Information</a></li>
+                        <li><a href="{% url 'home:return-policy' %}">Returns</a></li>
+                        <li><a href="{% url 'home:privacy-policy' %}">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Newsletter</h4>
+                    <form class="newsletter-form">
+                        <input type="email" placeholder="Enter Your Email Address" required>
+                        <button type="submit" class="btn btn-primary">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 VHInternaltional. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // User dropdown toggle
+        function toggleUserMenu(event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('userDropdown');
+            const button = document.querySelector('.user-icon-btn');
+            if (dropdown && button && !dropdown.contains(event.target) && !button.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+    </script>
+</body>
+</html>
+

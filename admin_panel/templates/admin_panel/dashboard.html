@@ -1,0 +1,169 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - VHInternaltional</title>
+    <link rel="stylesheet" href="{% static 'admin_panel/css/admin.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">
+                        <i class="fas fa-home"></i>
+                        <i class="fas fa-pencil-alt"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1>VHInternaltional</h1>
+                        <p>MAKE HOME BEAUTIFUL</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <span class="user-name">{{ user.username }}</span>
+                    <a href="{% url 'account:signout' %}" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="admin-nav">
+            <a href="{% url 'admin_panel:dashboard' %}" class="nav-tab active">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+            <a href="{% url 'admin_panel:products' %}" class="nav-tab">
+                <i class="fas fa-box"></i> Products
+            </a>
+            <a href="{% url 'admin_panel:categories' %}" class="nav-tab">
+                <i class="fas fa-gem"></i> Categories
+            </a>
+            <a href="{% url 'admin_panel:orders' %}" class="nav-tab">
+                <i class="fas fa-shopping-cart"></i> Orders
+            </a>
+            <a href="{% url 'admin_panel:users' %}" class="nav-tab">
+                <i class="fas fa-users"></i> Users
+            </a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Summary Cards -->
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-value" id="totalProducts">0</h3>
+                        <p class="stat-label">
+                            <span id="activeProducts">0</span> active
+                        </p>
+                    </div>
+                    <div class="stat-title">Total Products</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-value" id="totalOrders">0</h3>
+                        <p class="stat-label">
+                            <span id="pendingOrders">0</span> pending
+                        </p>
+                    </div>
+                    <div class="stat-title">Total Orders</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-value" id="totalUsers">0</h3>
+                        <p class="stat-label">
+                            <span id="totalCustomers">0</span> customers
+                        </p>
+                    </div>
+                    <div class="stat-title">Total Users</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-value" id="revenue">₹0</h3>
+                        <p class="stat-label">total earnings</p>
+                    </div>
+                    <div class="stat-title">Revenue</div>
+                </div>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <h2>Welcome to Admin Dashboard</h2>
+                <p>Manage your products, orders, and users from here.</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Fetch dashboard statistics
+        async function loadDashboardStats() {
+            try {
+                const response = await fetch('/api/admin/dashboard-stats/', {
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    credentials: 'same-origin'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load statistics');
+                }
+
+                const data = await response.json();
+                
+                // Update stats
+                document.getElementById('totalProducts').textContent = data.total_products;
+                document.getElementById('activeProducts').textContent = data.active_products;
+                document.getElementById('totalOrders').textContent = data.total_orders;
+                document.getElementById('pendingOrders').textContent = data.pending_orders;
+                document.getElementById('totalUsers').textContent = data.total_users;
+                document.getElementById('totalCustomers').textContent = data.total_customers;
+                document.getElementById('revenue').textContent = `₹${parseFloat(data.revenue).toLocaleString('en-IN')}`;
+                
+            } catch (error) {
+                console.error('Error loading dashboard stats:', error);
+            }
+        }
+
+        // Get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Load stats on page load
+        document.addEventListener('DOMContentLoaded', loadDashboardStats);
+    </script>
+</body>
+</html>
+

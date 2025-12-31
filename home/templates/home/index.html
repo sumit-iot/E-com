@@ -1,0 +1,356 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VHInternaltional - Make Home Beautiful</title>
+    <link rel="stylesheet" href="{% static 'home/css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-home"></i>
+                        <i class="fas fa-pencil-alt"></i>
+                    </div>
+                    <h1>VHInternaltional</h1>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="{% url 'home:index' %}" class="active">Home</a></li>
+                    <li><a href="{% url 'home:shop' %}">Shop</a></li>
+                    <li><a href="{% url 'home:about' %}">About</a></li>
+                    <li><a href="{% url 'home:contact' %}">Contact</a></li>
+                </ul>
+                <div class="nav-icons">
+                    <div class="user-menu-wrapper">
+                        <button class="icon-link user-icon-btn" onclick="toggleUserMenu(event)">
+                            <i class="fas fa-user"></i>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            {% if user.is_authenticated %}
+                                {% if user.is_staff or user.is_superuser or user.user_type == 'admin' or user.user_type == 'superadmin' %}
+                                    <div class="user-role-badge">Admin</div>
+                                {% endif %}
+                                <a href="#" class="dropdown-item active">
+                                    <i class="fas fa-user-circle"></i>
+                                    <span>My Profile</span>
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-box-open"></i>
+                                    <span>My Orders</span>
+                                </a>
+                                {% if user.is_staff or user.is_superuser or user.user_type == 'admin' or user.user_type == 'superadmin' %}
+                                    <a href="{% url 'admin_panel:dashboard' %}" class="dropdown-item">
+                                        <i class="fas fa-shopping-bag"></i>
+                                        <span>Manage Items</span>
+                                    </a>
+                                {% endif %}
+                                <div class="dropdown-divider"></div>
+                                <a href="{% url 'account:signout' %}" class="dropdown-item logout">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span>Logout</span>
+                                </a>
+                            {% else %}
+                                <a href="{% url 'account:signin' %}" class="dropdown-item">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                    <span>Sign In</span>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <a href="#" class="icon-link"><i class="fas fa-search"></i></a>
+                    <a href="#" class="icon-link"><i class="far fa-heart"></i></a>
+                    <a href="#" class="icon-link"><i class="fas fa-shopping-cart"></i></a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content-new">
+                <div class="hero-left">
+                    <div class="sale-banner">
+                        <i class="fas fa-fire"></i>
+                        <span>New Year Sale - Up to 70% Off</span>
+                    </div>
+                    <h2 class="hero-title-new">
+                        <span class="title-line">Shop Smart,</span>
+                        <span class="title-line orange">Live Better</span>
+                    </h2>
+                    <p class="hero-text-new">Discover millions of products from trusted brands. Enjoy fast delivery, easy returns, and the best prices guaranteed.</p>
+                    <a href="{% url 'home:shop' %}" class="btn btn-primary-new">
+                        Shop Now <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="hero-right">
+                    <div class="hero-image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" alt="Store Interior">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Browse The Range Section -->
+    <section class="browse-range">
+        <div class="container">
+            <h2 class="section-title">Browse The Range</h2>
+            <p class="section-subtitle">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+            <div class="categories-grid" id="categoriesGrid">
+                <!-- Categories will be loaded here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Our Products Section -->
+    <section class="products-section">
+        <div class="container">
+            <h2 class="section-title">Our Products</h2>
+            <div class="products-grid" id="productsGrid">
+                <!-- Products will be loaded here -->
+            </div>
+            <div class="load-more-container">
+                <a href="{% url 'home:shop' %}" class="btn btn-outline">Show More</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 50+ Beautiful rooms inspiration Section -->
+    <section class="rooms-inspiration">
+        <div class="container">
+            <div class="inspiration-content">
+                <div class="inspiration-left">
+                    <h2 class="inspiration-title">
+                        <span class="number-badge">50</span>+ Beautiful rooms inspiration
+                    </h2>
+                    <p class="inspiration-text">Our designer already made a lot of beautiful prototipe of rooms that inspire you.</p>
+                    <a href="{% url 'home:shop' %}" class="btn btn-primary-inspiration">EXPLORE MORE</a>
+                </div>
+                <div class="inspiration-right">
+                    <div class="room-carousel">
+                        <div class="carousel-slide active">
+                            <img src="https://images.unsplash.com/photo-1556912172-45b7abe8b7e1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" alt="Kitchen">
+                            <div class="slide-overlay">
+                                <span class="slide-number">02 - Living Room</span>
+                                <h3 class="slide-title">Comfort Zone</h3>
+                            </div>
+                            <button class="carousel-arrow next" onclick="nextSlide()">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <div class="carousel-dots">
+                            <span class="dot active" onclick="goToSlide(0)"></span>
+                            <span class="dot" onclick="goToSlide(1)"></span>
+                            <span class="dot" onclick="goToSlide(2)"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Choose Our Products Section -->
+    <section class="why-choose-section">
+        <div class="container">
+            <div class="values-tag">Our Values</div>
+            <h2 class="why-choose-title">Why choose our products</h2>
+            <div class="values-cards">
+                <div class="value-card">
+                    <div class="value-icon">01</div>
+                    <h3 class="value-title">Premium Materials</h3>
+                    <p class="value-description">High-quality brass and sustainable materials that respect our planet's resources.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">02</div>
+                    <h3 class="value-title">Handcrafted Quality</h3>
+                    <p class="value-description">Each piece is made by skilled artisans with attention to every detail.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">03</div>
+                    <h3 class="value-title">Timeless Design</h3>
+                    <p class="value-description">Pieces that transcend trends and will be cherished for generations.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>VHInternaltional</h3>
+                    <p>Asdullapur, Sultanpur Dost, Moradabad<br>
+                            244001, Uttar Pradesh</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Links</h4>
+                    <ul>
+                        <li><a href="{% url 'home:index' %}">Home</a></li>
+                        <li><a href="{% url 'home:shop' %}">Shop</a></li>
+                        <li><a href="{% url 'home:about' %}">About</a></li>
+                        <li><a href="{% url 'home:contact' %}">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Help</h4>
+                    <ul>
+                        <li><a href="#">Payment Options</a></li>
+                        <li><a href="{% url 'home:return-policy' %}">Returns</a></li>
+                        <li><a href="{% url 'home:privacy-policy' %}">Privacy Policies</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Newsletter</h4>
+                    <form class="newsletter-form">
+                        <input type="email" placeholder="Enter Your Email Address" required>
+                        <button type="submit" class="btn btn-primary">SUBSCRIBE</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>2025 furino. All rights reverved</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Load categories
+        async function loadCategories() {
+            try {
+                const response = await fetch('/api/categories/?is_active=true');
+                const data = await response.json();
+                
+                if (data.results && data.results.length > 0) {
+                    const grid = document.getElementById('categoriesGrid');
+                    const categoryNames = ['Dining', 'Living', 'Bedroom'];
+                    grid.innerHTML = data.results.slice(0, 3).map((category, index) => `
+                        <div class="category-card">
+                            ${category.img_url ? `<img src="${category.img_url}" alt="${category.category_name}">` : '<div class="placeholder-img"></div>'}
+                            <h3>${categoryNames[index] || category.category_name}</h3>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading categories:', error);
+            }
+        }
+
+        // Load featured products
+        async function loadProducts() {
+            try {
+                const response = await fetch('/api/products/?is_active=true&page_size=6');
+                const data = await response.json();
+                
+                if (data.results && data.results.length > 0) {
+                    const grid = document.getElementById('productsGrid');
+                    grid.innerHTML = data.results.map((product, index) => {
+                        const discountedPrice = product.discount > 0 
+                            ? (product.cost - (product.cost * product.discount / 100)).toFixed(0)
+                            : product.cost;
+                        
+                        const showNewBadge = index >= 4 && index <= 6;
+                        
+                        return `
+                        <div class="product-card">
+                            <div class="product-image-wrapper">
+                                ${product.img_url ? `<img src="${product.img_url}" alt="${product.name}" class="product-image">` : '<div class="placeholder-img">No Image</div>'}
+                                
+                                ${product.discount > 0 ? `<span class="discount-badge">-${product.discount}%</span>` : ''}
+                                ${showNewBadge && !product.discount ? `<span class="new-badge">New</span>` : ''}
+                                
+                                <!-- Hover Overlay -->
+                                <div class="product-overlay">
+                                    <button class="add-to-cart-btn">Add to cart</button>
+                                    <div class="product-actions">
+                                        <a href="#" class="action-icon" title="Share"><i class="fas fa-share-alt"></i></a>
+                                        <a href="#" class="action-icon" title="Compare"><i class="fas fa-exchange-alt"></i></a>
+                                        <a href="#" class="action-icon" title="Like"><i class="far fa-heart"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="product-info">
+                                <h3 class="product-name">${product.name}</h3>
+                                <p class="product-description">${product.description ? product.description.substring(0, 50) + '...' : 'Stylish furniture piece'}</p>
+                                <div class="product-price">
+                                    ${product.discount > 0 ? `<span class="original-price">Rp ${parseInt(product.cost).toLocaleString('id-ID')}</span>` : ''}
+                                    <span class="current-price">Rp ${parseInt(discountedPrice).toLocaleString('id-ID')}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    }).join('');
+                }
+            } catch (error) {
+                console.error('Error loading products:', error);
+            }
+        }
+
+        // Carousel functionality
+        let currentSlide = 0;
+        const slides = [
+            { number: '01 - Bed Room', title: 'Inner Peace', image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+            { number: '02 - Living Room', title: 'Comfort Zone', image: 'https://images.unsplash.com/photo-1556912172-45b7abe8b7e1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+            { number: '03 - Dining Room', title: 'Modern Elegance', image: 'https://images.unsplash.com/photo-1556911220-bff31c812dba?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' }
+        ];
+
+        function updateCarousel() {
+            const slide = document.querySelector('.carousel-slide');
+            const slideImg = slide.querySelector('img');
+            const slideNumber = slide.querySelector('.slide-number');
+            const slideTitle = slide.querySelector('.slide-title');
+            const dots = document.querySelectorAll('.dot');
+
+            slideImg.src = slides[currentSlide].image;
+            slideNumber.textContent = slides[currentSlide].number;
+            slideTitle.textContent = slides[currentSlide].title;
+
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentSlide);
+            });
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            updateCarousel();
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            updateCarousel();
+        }
+
+        // Auto-advance carousel
+        setInterval(nextSlide, 5000);
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCategories();
+            loadProducts();
+        });
+
+        // User dropdown toggle
+        function toggleUserMenu(event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('userDropdown');
+            const button = document.querySelector('.user-icon-btn');
+            if (!dropdown.contains(event.target) && !button.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+    </script>
+</body>
+</html>

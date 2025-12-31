@@ -1,0 +1,224 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categories Management - VHInternaltional Admin</title>
+    <link rel="stylesheet" href="{% static 'admin_panel/css/admin.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">
+                        <i class="fas fa-home"></i>
+                        <i class="fas fa-pencil-alt"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1>VHInternaltional</h1>
+                        <p>MAKE HOME BEAUTIFUL</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <span class="user-name">{{ user.username }}</span>
+                    <a href="{% url 'account:signout' %}" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="admin-nav">
+            <a href="{% url 'admin_panel:dashboard' %}" class="nav-tab">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+            <a href="{% url 'admin_panel:products' %}" class="nav-tab">
+                <i class="fas fa-box"></i> Products
+            </a>
+            <a href="{% url 'admin_panel:categories' %}" class="nav-tab active">
+                <i class="fas fa-gem"></i> Categories
+            </a>
+            <a href="{% url 'admin_panel:orders' %}" class="nav-tab">
+                <i class="fas fa-shopping-cart"></i> Orders
+            </a>
+            <a href="{% url 'admin_panel:users' %}" class="nav-tab">
+                <i class="fas fa-users"></i> Users
+            </a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <div class="page-header">
+                <h2>Categories Management</h2>
+                <button class="refresh-btn" onclick="loadCategories()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+
+            <!-- Error Message -->
+            <div class="error-message" id="errorMessage" style="display: none;">
+                <span id="errorText"></span>
+                <button class="retry-btn" onclick="loadCategories()">Retry</button>
+            </div>
+
+            <!-- Search and Filters -->
+            <div class="search-bar">
+                <div class="search-input-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search categories..." onkeyup="handleSearch()">
+                </div>
+                <a href="{% url 'admin_panel:add-category' %}" class="add-btn">
+                    <i class="fas fa-plus"></i> Add Category
+                </a>
+            </div>
+
+            <!-- Categories Table -->
+            <div class="table-container">
+                <table class="data-table" id="categoriesTable">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Category Name</th>
+                            <th>Discount</th>
+                            <th>Status</th>
+                            <th>Created On</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="categoriesTableBody">
+                        <tr>
+                            <td colspan="6" class="loading">Loading categories...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let searchTimeout;
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        async function loadCategories() {
+            const search = document.getElementById('searchInput').value;
+            const tbody = document.getElementById('categoriesTableBody');
+            const errorMessage = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+
+            try {
+                tbody.innerHTML = '<tr><td colspan="6" class="loading">Loading categories...</td></tr>';
+                errorMessage.style.display = 'none';
+
+                let url = '/api/admin/categories/?page_size=100';
+                if (search) {
+                    url += '&search=' + encodeURIComponent(search);
+                }
+
+                const response = await fetch(url, {
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    credentials: 'same-origin'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load categories');
+                }
+
+                const data = await response.json();
+
+                if (data.categories && data.categories.length > 0) {
+                    tbody.innerHTML = data.categories.map(category => {
+                        const createdDate = category.created_on ? new Date(category.created_on).toLocaleDateString() : 'N/A';
+                        return `
+                        <tr>
+                            <td>
+                                ${category.img_url ? `<img src="${category.img_url}" alt="${category.category_name}" class="product-thumb">` : '<span class="no-image">No Image</span>'}
+                            </td>
+                            <td>${category.category_name}</td>
+                            <td>${category.discount || 0}%</td>
+                            <td>
+                                <span class="status-badge ${category.is_active ? 'active' : 'inactive'}">
+                                    ${category.is_active ? 'Active' : 'Inactive'}
+                                </span>
+                            </td>
+                            <td>${createdDate}</td>
+                            <td>
+                                <a href="/admin-panel/categories/${category.id}/update/" class="action-btn edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button onclick="deleteCategory('${category.id}')" class="action-btn delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    }).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6" class="no-data">No categories found</td></tr>';
+                }
+
+            } catch (error) {
+                errorText.textContent = `Error loading categories: ${error.message}`;
+                errorMessage.style.display = 'flex';
+                tbody.innerHTML = '<tr><td colspan="6" class="error">Failed to load categories</td></tr>';
+            }
+        }
+
+        function handleSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(loadCategories, 500);
+        }
+
+        async function deleteCategory(categoryId) {
+            if (!confirm('Are you sure you want to delete this category?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/categories/${categoryId}/delete/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    credentials: 'same-origin'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('Category deleted successfully');
+                    loadCategories();
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to delete category'));
+                }
+            } catch (error) {
+                alert('An error occurred: ' + error.message);
+            }
+        }
+
+        // Load categories on page load
+        document.addEventListener('DOMContentLoaded', loadCategories);
+    </script>
+</body>
+</html>
+

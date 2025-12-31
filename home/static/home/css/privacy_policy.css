@@ -1,0 +1,133 @@
+.privacy-section {
+    padding: 60px 0;
+    min-height: 70vh;
+}
+
+.page-title {
+    font-size: 48px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 40px;
+    color: #333;
+}
+
+.privacy-content {
+    max-width: 800px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.privacy-content h2 {
+    font-size: 28px;
+    font-weight: 600;
+    margin-top: 40px;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.privacy-content h2:first-child {
+    margin-top: 0;
+}
+
+.privacy-content p {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.privacy-content ul {
+    margin-left: 30px;
+    margin-bottom: 20px;
+}
+
+.privacy-content li {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+/* FAQ Section */
+.faq-title {
+    margin-top: 50px !important;
+    border-top: 2px solid #e0e0e0;
+    padding-top: 30px;
+}
+
+.faq-container {
+    margin-top: 30px;
+}
+
+.faq-item {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    overflow: hidden;
+    transition: all 0.3s;
+}
+
+.faq-item:hover {
+    border-color: #B88E2F;
+}
+
+.faq-question {
+    padding: 20px;
+    background: #f9f9f9;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.3s;
+}
+
+.faq-question:hover {
+    background: #f0f0f0;
+}
+
+.faq-question h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.faq-question i {
+    color: #B88E2F;
+    transition: transform 0.3s;
+}
+
+.faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.faq-answer p {
+    padding: 20px;
+    margin: 0;
+    background: #fff;
+    color: #666;
+}
+
+.faq-item.active .faq-answer {
+    max-height: 500px;
+}
+
+@media (max-width: 768px) {
+    .page-title {
+        font-size: 32px;
+    }
+
+    .privacy-content {
+        padding: 20px;
+    }
+
+    .faq-question h3 {
+        font-size: 16px;
+    }
+}
+

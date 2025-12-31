@@ -1,0 +1,244 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - VHInternaltional</title>
+    <link rel="stylesheet" href="{% static 'home/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'home/css/about.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-home"></i>
+                        <i class="fas fa-pencil-alt"></i>
+                    </div>
+                    <h1>VHInternaltional</h1>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="{% url 'home:index' %}">Home</a></li>
+                    <li><a href="{% url 'home:shop' %}">Shop</a></li>
+                    <li><a href="{% url 'home:about' %}" class="active">About</a></li>
+                    <li><a href="{% url 'home:contact' %}">Contact</a></li>
+                </ul>
+                <div class="nav-icons">
+                    <div class="user-menu-wrapper">
+                        <button class="icon-link user-icon-btn" onclick="toggleUserMenu(event)">
+                            <i class="fas fa-user"></i>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            {% if user.is_authenticated %}
+                                {% if user.is_staff or user.is_superuser or user.user_type == 'admin' or user.user_type == 'superadmin' %}
+                                    <div class="user-role-badge">Admin</div>
+                                {% endif %}
+                                <a href="#" class="dropdown-item active">
+                                    <i class="fas fa-user-circle"></i>
+                                    <span>My Profile</span>
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-box-open"></i>
+                                    <span>My Orders</span>
+                                </a>
+                                {% if user.is_staff or user.is_superuser or user.user_type == 'admin' or user.user_type == 'superadmin' %}
+                                    <a href="{% url 'admin_panel:dashboard' %}" class="dropdown-item">
+                                        <i class="fas fa-shopping-bag"></i>
+                                        <span>Manage Items</span>
+                                    </a>
+                                {% endif %}
+                                <div class="dropdown-divider"></div>
+                                <a href="{% url 'account:signout' %}" class="dropdown-item logout">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span>Logout</span>
+                                </a>
+                            {% else %}
+                                <a href="{% url 'account:signin' %}" class="dropdown-item">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                    <span>Sign In</span>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <a href="#" class="icon-link"><i class="fas fa-search"></i></a>
+                    <a href="#" class="icon-link"><i class="far fa-heart"></i></a>
+                    <a href="#" class="icon-link"><i class="fas fa-shopping-cart"></i></a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- About Hero Section -->
+    <section class="about-hero">
+    <div class="about-hero-content">
+        <h1 class="about-hero-title">
+            <svg class="about-hero-icon" width="40" height="40" viewBox="0 0 60 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- House -->
+                <path d="M15 25 L15 30 L25 30 L25 25" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                <path d="M10 20 L20 12 L30 20" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                <path d="M12 20 L12 30" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M18 30 L18 25" stroke="currentColor" stroke-width="1.5"/>
+                <!-- Door -->
+                <rect x="13" y="25" width="4" height="5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                <!-- Ruler/Measuring Tape -->
+                <path d="M32 15 L45 22" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M32 13 L32 17" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M35 14.5 L35 19.5" stroke="currentColor" stroke-width="1"/>
+                <path d="M38 14 L38 20" stroke="currentColor" stroke-width="1"/>
+                <path d="M41 13.5 L41 20.5" stroke="currentColor" stroke-width="1"/>
+                <path d="M44 13 L44 21" stroke="currentColor" stroke-width="1"/>
+                <path d="M45 12 L45 22" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+            About
+        </h1>
+         <div class="breadcrumbs">
+             <a href="{% url 'home:index' %}">Home</a> > About
+         </div>
+    </div>
+</section>
+
+    <!-- About Content Section -->
+    <section class="about-section">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2>Welcome to VHInternaltional</h2>
+                    <p>We are dedicated to providing high-quality furniture and home decor products that transform your living spaces into beautiful, functional environments.</p>
+                    <p>With years of experience in the industry, we understand the importance of quality, design, and customer satisfaction. Our team of skilled artisans and designers work tirelessly to bring you products that combine timeless design with modern functionality.</p>
+                </div>
+                <div class="about-image">
+                    <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="About Us">
+                </div>
+            </div>
+        </div>
+    </section>
+<!-- Our Values Section -->
+<section class="our-values-section">
+    <div class="container">
+        <h2 class="section-main-title">Our Values</h2>
+        
+        <div class="values-cards">
+            <div class="value-card">
+                <div class="value-icon">
+                    <i class="fas fa-leaf"></i>
+                </div>
+                <h3 class="value-title">Sustainability</h3>
+                <p class="value-text">
+                    We source our materials responsibly and create furniture designed to last for generations, 
+                    reducing environmental impact.
+                </p>
+            </div>
+            
+            <div class="value-card">
+                <div class="value-icon">
+                    <i class="fas fa-hammer"></i>
+                </div>
+                <h3 class="value-title">Craftsmanship</h3>
+                <p class="value-text">
+                    Every piece is crafted with meticulous attention to detail, honoring traditional techniques 
+                    while embracing innovation.
+                </p>
+            </div>
+            
+            <div class="value-card">
+                <div class="value-icon">
+                    <i class="fas fa-palette"></i>
+                </div>
+                <h3 class="value-title">Timeless Design</h3>
+                <p class="value-text">
+                    We create pieces that transcend trends, focusing on balanced proportions, quality materials, 
+                    and enduring aesthetics.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+    <!-- Our Team Section -->
+    <section class="our-team-section">
+        <div class="container">
+            <h2 class="section-main-title">Our Team</h2>
+            
+            <div class="team-grid">
+                <div class="team-member">
+                    <img src="https://sumittestbucket2908.s3.amazonaws.com/profile_images/Screenshot+2025-12-20+010723.png" alt="Mr. Vikas Chaudhary" class="team-member-image">
+                    <div class="team-member-info">
+                        <div class="team-member-name">Mr. Vikas Chaudhary</div>
+                        <div class="team-member-role">Founder & CEO</div>
+                    </div>
+                </div>
+                
+                <div class="team-member">
+                    <img src="https://sumittestbucket2908.s3.amazonaws.com/profile_images/Screenshot+2025-12-20+010620.png" alt="Mr. Haider Ali" class="team-member-image">
+                    <div class="team-member-info">
+                        <div class="team-member-name">Mr. Haider Ali</div>
+                        <div class="team-member-role">Founder & CEO</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>VHInternaltional</h3>
+                    <p>Asdullapur, Sultanpur Dost, Moradabad<br>
+                        244001, Uttar Pradesh</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Links</h4>
+                    <ul>
+                        <li><a href="{% url 'home:index' %}">Home</a></li>
+                        <li><a href="{% url 'home:shop' %}">Shop</a></li>
+                        <li><a href="{% url 'home:about' %}">About</a></li>
+                        <li><a href="{% url 'home:contact' %}">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Help</h4>
+                    <ul>
+                        <li><a href="#">Payment Options</a></li>
+                        <li><a href="{% url 'home:return-policy' %}">Returns</a></li>
+                        <li><a href="{% url 'home:privacy-policy' %}">Privacy Policies</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Newsletter</h4>
+                    <form class="newsletter-form">
+                        <input type="email" placeholder="Enter Your Email Address" required>
+                        <button type="submit" class="btn btn-primary">SUBSCRIBE</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>2025 furino. All rights reverved</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // User dropdown toggle
+        function toggleUserMenu(event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('userDropdown');
+            const button = document.querySelector('.user-icon-btn');
+            if (dropdown && button && !dropdown.contains(event.target) && !button.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+    </script>
+</body>
+</html>
+

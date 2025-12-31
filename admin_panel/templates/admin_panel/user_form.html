@@ -1,0 +1,283 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if action == 'add' %}Add User{% else %}Update User{% endif %} - VHInternaltional Admin</title>
+    <link rel="stylesheet" href="{% static 'admin_panel/css/admin.css' %}">
+    <link rel="stylesheet" href="{% static 'admin_panel/css/product_form.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">
+                        <i class="fas fa-home"></i>
+                        <i class="fas fa-pencil-alt"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1>VHInternaltional</h1>
+                        <p>MAKE HOME BEAUTIFUL</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <span class="user-name">{{ user.username }}</span>
+                    <a href="{% url 'account:signout' %}" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="admin-nav">
+            <a href="{% url 'admin_panel:dashboard' %}" class="nav-tab">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+            <a href="{% url 'admin_panel:products' %}" class="nav-tab">
+                <i class="fas fa-box"></i> Products
+            </a>
+            <a href="{% url 'admin_panel:categories' %}" class="nav-tab">
+                <i class="fas fa-gem"></i> Categories
+            </a>
+            <a href="{% url 'admin_panel:orders' %}" class="nav-tab">
+                <i class="fas fa-shopping-cart"></i> Orders
+            </a>
+            <a href="{% url 'admin_panel:users' %}" class="nav-tab active">
+                <i class="fas fa-users"></i> Users
+            </a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <div class="page-header">
+                <h2>{% if action == 'add' %}Add New User{% else %}Update User{% endif %}</h2>
+                <a href="{% url 'admin_panel:users' %}" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Users
+                </a>
+            </div>
+
+            <!-- Error/Success Messages -->
+            <div class="message" id="message" style="display: none;">
+                <span id="messageText"></span>
+            </div>
+
+            <!-- User Form -->
+            <div class="form-container">
+                <form id="userForm">
+                    {% csrf_token %}
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="username">Username *</label>
+                            <input type="text" id="username" name="username" required 
+                                   value="{% if action == 'update' %}{{ user_obj.username }}{% endif %}"
+                                   placeholder="Enter username">
+                            <span class="error-text" id="usernameError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email *</label>
+                            <input type="email" id="email" name="email" required 
+                                   value="{% if action == 'update' %}{{ user_obj.email }}{% endif %}"
+                                   placeholder="Enter email">
+                            <span class="error-text" id="emailError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password">Password {% if action == 'add' %}*{% else %}(leave blank to keep current){% endif %}</label>
+                            <input type="password" id="password" name="password" 
+                                   {% if action == 'add' %}required{% endif %}
+                                   placeholder="Enter password">
+                            <span class="error-text" id="passwordError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="first_name">First Name</label>
+                            <input type="text" id="first_name" name="first_name" 
+                                   value="{% if action == 'update' %}{{ user_obj.first_name|default:'' }}{% endif %}"
+                                   placeholder="Enter first name">
+                            <span class="error-text" id="first_nameError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="last_name">Last Name</label>
+                            <input type="text" id="last_name" name="last_name" 
+                                   value="{% if action == 'update' %}{{ user_obj.last_name|default:'' }}{% endif %}"
+                                   placeholder="Enter last name">
+                            <span class="error-text" id="last_nameError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="mobile">Mobile</label>
+                            <input type="text" id="mobile" name="mobile" 
+                                   value="{% if action == 'update' %}{{ user_obj.mobile|default:'' }}{% endif %}"
+                                   placeholder="Enter mobile number">
+                            <span class="error-text" id="mobileError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="user_type">User Type</label>
+                            <select id="user_type" name="user_type">
+                                <option value="common" {% if action == 'update' and user_obj.user_type == 'common' %}selected{% endif %}>Common User</option>
+                                <option value="admin" {% if action == 'update' and user_obj.user_type == 'admin' %}selected{% endif %}>Admin</option>
+                                <option value="superadmin" {% if action == 'update' and user_obj.user_type == 'superadmin' %}selected{% endif %}>Super Admin</option>
+                            </select>
+                            <span class="error-text" id="user_typeError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="profile_img_url">Profile Image URL</label>
+                            <input type="url" id="profile_img_url" name="profile_img_url" 
+                                   value="{% if action == 'update' %}{{ user_obj.profile_img_url|default:'' }}{% endif %}"
+                                   placeholder="Enter image URL">
+                            <span class="error-text" id="profile_img_urlError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="is_active">Status</label>
+                            <select id="is_active" name="is_active">
+                                <option value="true" {% if action == 'update' and user_obj.is_active or action == 'add' %}selected{% endif %}>Active</option>
+                                <option value="false" {% if action == 'update' and not user_obj.is_active %}selected{% endif %}>Inactive</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="is_staff">Staff Status</label>
+                            <select id="is_staff" name="is_staff">
+                                <option value="false" {% if action == 'update' and not user_obj.is_staff %}selected{% endif %}>No</option>
+                                <option value="true" {% if action == 'update' and user_obj.is_staff %}selected{% endif %}>Yes</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="is_superuser">Superuser Status</label>
+                            <select id="is_superuser" name="is_superuser">
+                                <option value="false" {% if action == 'update' and not user_obj.is_superuser %}selected{% endif %}>No</option>
+                                <option value="true" {% if action == 'update' and user_obj.is_superuser %}selected{% endif %}>Yes</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn">
+                            <i class="fas fa-save"></i> {% if action == 'add' %}Create User{% else %}Update User{% endif %}
+                        </button>
+                        <a href="{% url 'admin_panel:users' %}" class="cancel-btn">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const action = '{{ action }}';
+        const userId = '{% if action == "update" %}{{ user_obj.id }}{% endif %}';
+        const form = document.getElementById('userForm');
+        const message = document.getElementById('message');
+        const messageText = document.getElementById('messageText');
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function showMessage(text, type = 'error') {
+            messageText.textContent = text;
+            message.className = `message ${type}`;
+            message.style.display = 'flex';
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 5000);
+        }
+
+        function clearErrors() {
+            document.querySelectorAll('.error-text').forEach(el => el.textContent = '');
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearErrors();
+
+            const formData = new FormData(form);
+            
+            // Convert to JSON for API
+            const data = {};
+            formData.forEach((value, key) => {
+                if (key === 'is_active' || key === 'is_staff' || key === 'is_superuser') {
+                    data[key] = value === 'true';
+                } else if (value) {
+                    data[key] = value;
+                }
+            });
+            
+            // Don't send empty password on update
+            if (action === 'update' && !data.password) {
+                delete data.password;
+            }
+
+            try {
+                let url, method;
+                if (action === 'add') {
+                    url = '/api/admin/users/create/';
+                    method = 'POST';
+                } else {
+                    url = `/api/admin/users/${userId}/update/`;
+                    method = 'PATCH';
+                }
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify(data),
+                    credentials: 'same-origin'
+                });
+
+                const responseData = await response.json();
+
+                if (response.ok) {
+                    showMessage(responseData.message || 'User saved successfully!', 'success');
+                    setTimeout(() => {
+                        window.location.href = '{% url "admin_panel:users" %}';
+                    }, 1500);
+                } else {
+                    if (responseData.errors) {
+                        // Display field errors
+                        Object.keys(responseData.errors).forEach(field => {
+                            const errorEl = document.getElementById(field + 'Error');
+                            if (errorEl) {
+                                errorEl.textContent = Array.isArray(responseData.errors[field]) 
+                                    ? responseData.errors[field][0] 
+                                    : responseData.errors[field];
+                            }
+                        });
+                    }
+                    showMessage(responseData.error || 'Failed to save user');
+                }
+            } catch (error) {
+                showMessage('An error occurred: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
+

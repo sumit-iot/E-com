@@ -1,0 +1,264 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ form_title }} - VHInternaltional Admin</title>
+    <link rel="stylesheet" href="{% static 'admin_panel/css/admin.css' %}">
+    <link rel="stylesheet" href="{% static 'admin_panel/css/product_form.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">
+                        <i class="fas fa-home"></i>
+                        <i class="fas fa-pencil-alt"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1>VHInternaltional</h1>
+                        <p>MAKE HOME BEAUTIFUL</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <span class="user-name">{{ user.username }}</span>
+                    <a href="{% url 'account:signout' %}" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="admin-nav">
+            <a href="{% url 'admin_panel:dashboard' %}" class="nav-tab">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+            <a href="{% url 'admin_panel:products' %}" class="nav-tab active">
+                <i class="fas fa-box"></i> Products
+            </a>
+            <a href="{% url 'admin_panel:categories' %}" class="nav-tab">
+                <i class="fas fa-gem"></i> Categories
+            </a>
+            <a href="{% url 'admin_panel:orders' %}" class="nav-tab">
+                <i class="fas fa-shopping-cart"></i> Orders
+            </a>
+            <a href="{% url 'admin_panel:users' %}" class="nav-tab">
+                <i class="fas fa-users"></i> Users
+            </a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <div class="page-header">
+                <h2>{{ form_title }}</h2>
+                <a href="{% url 'admin_panel:products' %}" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Products
+                </a>
+            </div>
+
+            <!-- Error/Success Messages -->
+            <div class="message" id="message" style="display: none;">
+                <span id="messageText"></span>
+            </div>
+
+            <!-- Product Form -->
+            <div class="form-container">
+                <form id="productForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="name">Product Name *</label>
+                            <input type="text" id="name" name="name" required placeholder="Enter product name">
+                            <span class="error-text" id="nameError"></span>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="description">Description</label>
+                            <textarea id="description" name="description" placeholder="Enter product description"></textarea>
+                            <span class="error-text" id="descriptionError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cost">Price (₹) *</label>
+                            <input type="number" id="cost" name="cost" required min="0" step="0.01" placeholder="0">
+                            <span class="error-text" id="costError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="quantity">Quantity *</label>
+                            <input type="number" id="quantity" name="quantity" required min="0" placeholder="0">
+                            <span class="error-text" id="quantityError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="discount">Discount (%)</label>
+                            <input type="number" id="discount" name="discount" min="0" max="100" value="0" placeholder="0">
+                            <span class="error-text" id="discountError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="product_category_id">Category</label>
+                            <select id="product_category_id" name="product_category_id">
+                                <option value="">-- Select Category --</option>
+                                {% for category in categories %}
+                                    <option value="{{ category.id }}">{{ category.category_name }}</option>
+                                {% endfor %}
+                            </select>
+                            <span class="error-text" id="product_category_idError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="is_active">Status</label>
+                            <select id="is_active" name="is_active">
+                                <option value="true" selected>Active</option>
+                                <option value="false">Inactive</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="img_url">Product Image</label>
+                            <input type="file" id="img_url" name="img_url" accept="image/*">
+                            <div id="image-preview-container" class="image-preview-container"></div>
+                            <span class="error-text" id="img_urlError"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn">
+                            <i class="fas fa-save"></i> {% if is_edit %}Update Product{% else %}Create Product{% endif %}
+                        </button>
+                        <a href="{% url 'admin_panel:products' %}" class="cancel-btn">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const isEdit = {{ is_edit|lower }};
+        const productId = isEdit ? JSON.parse('{{ product|escapejs }}').id : null;
+        const productData = isEdit ? JSON.parse('{{ product|escapejs }}') : {};
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('productForm');
+            const formMessage = document.getElementById('message');
+            const messageText = document.getElementById('messageText');
+            const imgUrlInput = document.getElementById('img_url');
+            const imagePreviewContainer = document.getElementById('image-preview-container');
+
+            // Populate form for edit mode
+            if (isEdit && productData) {
+                document.getElementById('name').value = productData.name || '';
+                document.getElementById('description').value = productData.description || '';
+                document.getElementById('cost').value = productData.cost || 0;
+                document.getElementById('quantity').value = productData.quantity || 0;
+                document.getElementById('discount').value = productData.discount || 0;
+                document.getElementById('is_active').value = productData.is_active ? 'true' : 'false';
+                
+                if (productData.product_category_id) {
+                    document.getElementById('product_category_id').value = productData.product_category_id;
+                }
+
+                // Show current image if exists
+                if (productData.img_url) {
+                    const img = document.createElement('img');
+                    img.src = productData.img_url;
+                    img.alt = 'Current Product Image';
+                    img.className = 'image-preview';
+                    img.style.maxWidth = '200px';
+                    img.style.marginTop = '10px';
+                    imagePreviewContainer.appendChild(img);
+                }
+            }
+
+            // Image preview logic
+            imgUrlInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        imagePreviewContainer.innerHTML = '';
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.alt = 'New Image Preview';
+                        img.className = 'image-preview';
+                        img.style.maxWidth = '200px';
+                        img.style.marginTop = '10px';
+                        imagePreviewContainer.appendChild(img);
+                    };
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+
+            form.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                clearErrors();
+                messageText.textContent = '';
+                formMessage.style.display = 'none';
+                formMessage.className = 'message';
+
+                const formData = new FormData(form);
+                // Ensure is_active is always sent
+                formData.set('is_active', document.getElementById('is_active').value === 'true');
+
+                const url = isEdit ? `/api/admin/products/${productId}/update/` : '/api/admin/products/create/';
+                const method = isEdit ? 'PATCH' : 'POST';
+
+                try {
+                    const response = await fetch(url, {
+                        method: method,
+                        headers: {
+                            'X-CSRFToken': csrfToken,
+                        },
+                        body: formData,
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        messageText.textContent = `Product ${isEdit ? 'updated' : 'created'} successfully! Redirecting...`;
+                        formMessage.className = 'message success';
+                        formMessage.style.display = 'flex';
+                        setTimeout(() => {
+                            window.location.href = "{% url 'admin_panel:products' %}";
+                        }, 1500);
+                    } else {
+                        messageText.textContent = `Error: ${data.error || data.detail || 'Please correct the errors below.'}`;
+                        formMessage.className = 'message error';
+                        formMessage.style.display = 'flex';
+                        displayErrors(data);
+                    }
+                } catch (error) {
+                    messageText.textContent = 'An unexpected error occurred. Please try again.';
+                    formMessage.className = 'message error';
+                    formMessage.style.display = 'flex';
+                    console.error('Fetch error:', error);
+                }
+            });
+
+            function displayErrors(errors) {
+                for (const field in errors) {
+                    const errorElement = document.getElementById(`${field}Error`);
+                    if (errorElement) {
+                        const errorMessages = Array.isArray(errors[field]) ? errors[field] : [errors[field]];
+                        errorElement.textContent = errorMessages.join(' ');
+                    }
+                }
+            }
+
+            function clearErrors() {
+                document.querySelectorAll('.error-text').forEach(el => el.textContent = '');
+            }
+        });
+    </script>
+</body>
+</html>
+

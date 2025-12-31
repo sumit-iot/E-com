@@ -1,0 +1,67 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orders Management - VHInternaltional Admin</title>
+    <link rel="stylesheet" href="{% static 'admin_panel/css/admin.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">
+                        <i class="fas fa-home"></i>
+                        <i class="fas fa-pencil-alt"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1>VHInternaltional</h1>
+                        <p>MAKE HOME BEAUTIFUL</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <span class="user-name">{{ user.username }}</span>
+                    <a href="{% url 'account:signout' %}" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="admin-nav">
+            <a href="{% url 'admin_panel:dashboard' %}" class="nav-tab">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+            <a href="{% url 'admin_panel:products' %}" class="nav-tab">
+                <i class="fas fa-box"></i> Products
+            </a>
+            <a href="{% url 'admin_panel:categories' %}" class="nav-tab">
+                <i class="fas fa-gem"></i> Categories
+            </a>
+            <a href="{% url 'admin_panel:orders' %}" class="nav-tab active">
+                <i class="fas fa-shopping-cart"></i> Orders
+            </a>
+            <a href="{% url 'admin_panel:users' %}" class="nav-tab">
+                <i class="fas fa-users"></i> Users
+            </a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <div class="page-header">
+                <h2>Orders Management</h2>
+            </div>
+
+            <div class="dashboard-content">
+                <p>Orders management feature coming soon...</p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
+

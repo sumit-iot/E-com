@@ -1,0 +1,274 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact - VHInternaltional</title>
+    <link rel="stylesheet" href="{% static 'home/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'home/css/contact.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-home"></i>
+                        <i class="fas fa-pencil-alt"></i>
+                    </div>
+                    <h1>VHInternaltional</h1>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="{% url 'home:index' %}">Home</a></li>
+                    <li><a href="{% url 'home:shop' %}">Shop</a></li>
+                    <li><a href="{% url 'home:about' %}">About</a></li>
+                    <li><a href="{% url 'home:contact' %}" class="active">Contact</a></li>
+                </ul>
+                <div class="nav-icons">
+                    <div class="user-menu-wrapper">
+                        <button class="icon-link user-icon-btn" onclick="toggleUserMenu(event)">
+                            <i class="fas fa-user"></i>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            {% if user.is_authenticated %}
+                                {% if user.is_staff or user.is_superuser or user.user_type == 'admin' or user.user_type == 'superadmin' %}
+                                    <div class="user-role-badge">Admin</div>
+                                {% endif %}
+                                <a href="#" class="dropdown-item active">
+                                    <i class="fas fa-user-circle"></i>
+                                    <span>My Profile</span>
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-box-open"></i>
+                                    <span>My Orders</span>
+                                </a>
+                                {% if user.is_staff or user.is_superuser or user.user_type == 'admin' or user.user_type == 'superadmin' %}
+                                    <a href="{% url 'admin_panel:dashboard' %}" class="dropdown-item">
+                                        <i class="fas fa-shopping-bag"></i>
+                                        <span>Manage Items</span>
+                                    </a>
+                                {% endif %}
+                                <div class="dropdown-divider"></div>
+                                <a href="{% url 'account:signout' %}" class="dropdown-item logout">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span>Logout</span>
+                                </a>
+                            {% else %}
+                                <a href="{% url 'account:signin' %}" class="dropdown-item">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                    <span>Sign In</span>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <a href="#" class="icon-link"><i class="fas fa-search"></i></a>
+                    <a href="#" class="icon-link"><i class="far fa-heart"></i></a>
+                    <a href="#" class="icon-link"><i class="fas fa-shopping-cart"></i></a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Contact Hero Section -->
+    <section class="contact-hero">
+        <div class="contact-hero-content">
+            <h1 class="contact-hero-title">
+                <svg class="contact-hero-icon" width="40" height="40" viewBox="0 0 60 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- House -->
+                    <path d="M15 25 L15 30 L25 30 L25 25" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                    <path d="M10 20 L20 12 L30 20" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                    <path d="M12 20 L12 30" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M18 30 L18 25" stroke="currentColor" stroke-width="1.5"/>
+                    <!-- Door -->
+                    <rect x="13" y="25" width="4" height="5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                    <!-- Ruler/Measuring Tape -->
+                    <path d="M32 15 L45 22" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M32 13 L32 17" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M35 14.5 L35 19.5" stroke="currentColor" stroke-width="1"/>
+                    <path d="M38 14 L38 20" stroke="currentColor" stroke-width="1"/>
+                    <path d="M41 13.5 L41 20.5" stroke="currentColor" stroke-width="1"/>
+                    <path d="M44 13 L44 21" stroke="currentColor" stroke-width="1"/>
+                    <path d="M45 12 L45 22" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+                Contact
+            </h1>
+            <div class="breadcrumbs">
+                <a href="{% url 'home:index' %}">Home</a> > Contact
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Content Section -->
+    <section class="contact-section">
+        <div class="container">
+            <div class="contact-grid">
+                <!-- Contact Information -->
+                <div class="contact-info-card">
+                    <div class="contact-info-item">
+                        <div class="contact-info-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <h3 class="contact-info-title">Address</h3>
+                        <p class="contact-info-text">
+                            Asdullapur, Sultanpur Dost, Moradabad<br>
+                            244001, Uttar Pradesh
+                        </p>
+                    </div>
+                    <div class="contact-info-item">
+                        <div class="contact-info-icon">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <h3 class="contact-info-title">Phone</h3>
+                        <p class="contact-info-text">
+                            <a href="tel:+919756853317">+91 97568-53317</a>
+                        </p>
+                    </div>
+                    <div class="contact-info-item">
+                        <div class="contact-info-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <h3 class="contact-info-title">Email</h3>
+                        <p class="contact-info-text">
+                            <a href="mailto:info@vhinternational.com">info@vhinternational.com</a><br>
+                            <a href="mailto:support@vhinternational.com">support@vhinternational.com</a>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Contact Form -->
+                <div class="contact-form-card">
+                    <h2 class="form-title">Get In Touch</h2>
+                    <form id="contactForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="name" class="form-label">Your Name</label>
+                                <input type="text" class="form-control" id="name" name="name" placeholder="Your Name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email" class="form-label">Your Email</label>
+                                <input type="email" class="form-control" id="email" name="email" placeholder="Your Email" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="phone" name="phone" placeholder="Phone Number">
+                            </div>
+                            <div class="form-group">
+                                <label for="subject" class="form-label">Subject</label>
+                                <input type="text" class="form-control" id="subject" name="subject" placeholder="Subject" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="message" class="form-label">Message</label>
+                            <textarea class="form-control" id="message" name="message" rows="6" placeholder="Your Message" required></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-submit">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Map Section -->
+    <section class="map-section">
+        <div class="container">
+            <div class="map-container">
+                <iframe 
+                    src="https://www.google.com/maps?q=Sultanpur+Dost,+Moradabad,+Uttar+Pradesh+244001&output=embed" 
+                    allowfullscreen="" 
+                    loading="lazy" 
+                    referrerpolicy="no-referrer-when-downgrade"
+                    title="Sultanpur Dost, Moradabad, Uttar Pradesh Location">
+                </iframe>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>VHInternaltional</h3>
+                    <p>Asdullapur, Sultanpur Dost, Moradabad<br>
+                        244001, Uttar Pradesh</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Links</h4>
+                    <ul>
+                        <li><a href="{% url 'home:index' %}">Home</a></li>
+                        <li><a href="{% url 'home:shop' %}">Shop</a></li>
+                        <li><a href="{% url 'home:about' %}">About</a></li>
+                        <li><a href="{% url 'home:contact' %}">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Help</h4>
+                    <ul>
+                        <li><a href="#">Payment Options</a></li>
+                        <li><a href="{% url 'home:return-policy' %}">Returns</a></li>
+                        <li><a href="{% url 'home:privacy-policy' %}">Privacy Policies</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Newsletter</h4>
+                    <form class="newsletter-form">
+                        <input type="email" placeholder="Enter Your Email Address" required>
+                        <button type="submit" class="btn btn-primary">SUBSCRIBE</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>2025 furino. All rights reverved</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // User dropdown toggle
+        function toggleUserMenu(event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('userDropdown');
+            const button = document.querySelector('.user-icon-btn');
+            if (dropdown && button && !dropdown.contains(event.target) && !button.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        // Contact form submission
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                subject: document.getElementById('subject').value,
+                message: document.getElementById('message').value
+            };
+
+            // Here you can add API call to submit the form
+            console.log('Form submitted:', formData);
+            
+            // Show success message
+            alert('Thank you for contacting us! We will get back to you soon.');
+            
+            // Reset form
+            this.reset();
+        });
+    </script>
+</body>
+</html>
+

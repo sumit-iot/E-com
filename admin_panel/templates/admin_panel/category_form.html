@@ -1,0 +1,243 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if action == 'add' %}Add Category{% else %}Update Category{% endif %} - VHInternaltional Admin</title>
+    <link rel="stylesheet" href="{% static 'admin_panel/css/admin.css' %}">
+    <link rel="stylesheet" href="{% static 'admin_panel/css/product_form.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">
+                        <i class="fas fa-home"></i>
+                        <i class="fas fa-pencil-alt"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1>VHInternaltional</h1>
+                        <p>MAKE HOME BEAUTIFUL</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <span class="user-name">{{ user.username }}</span>
+                    <a href="{% url 'account:signout' %}" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="admin-nav">
+            <a href="{% url 'admin_panel:dashboard' %}" class="nav-tab">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+            <a href="{% url 'admin_panel:products' %}" class="nav-tab">
+                <i class="fas fa-box"></i> Products
+            </a>
+            <a href="{% url 'admin_panel:categories' %}" class="nav-tab active">
+                <i class="fas fa-gem"></i> Categories
+            </a>
+            <a href="{% url 'admin_panel:orders' %}" class="nav-tab">
+                <i class="fas fa-shopping-cart"></i> Orders
+            </a>
+            <a href="{% url 'admin_panel:users' %}" class="nav-tab">
+                <i class="fas fa-users"></i> Users
+            </a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <div class="page-header">
+                <h2>{% if action == 'add' %}Add New Category{% else %}Update Category{% endif %}</h2>
+                <a href="{% url 'admin_panel:categories' %}" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Categories
+                </a>
+            </div>
+
+            <!-- Error/Success Messages -->
+            <div class="message" id="message" style="display: none;">
+                <span id="messageText"></span>
+            </div>
+
+            <!-- Category Form -->
+            <div class="form-container">
+                <form id="categoryForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="category_name">Category Name *</label>
+                            <input type="text" id="category_name" name="category_name" required 
+                                   value="{% if action == 'update' %}{{ category.category_name }}{% endif %}"
+                                   placeholder="Enter category name">
+                            <span class="error-text" id="category_nameError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="discount">Discount (%)</label>
+                            <input type="number" id="discount" name="discount" min="0" max="100" step="1"
+                                   value="{% if action == 'update' %}{{ category.discount|default:0 }}{% else %}0{% endif %}"
+                                   placeholder="0">
+                            <span class="error-text" id="discountError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="is_active">Status</label>
+                            <select id="is_active" name="is_active">
+                                <option value="true" {% if action == 'update' and category.is_active or action == 'add' %}selected{% endif %}>Active</option>
+                                <option value="false" {% if action == 'update' and not category.is_active %}selected{% endif %}>Inactive</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="img_url">Category Image</label>
+                            <input type="file" id="img_url" name="img_url" accept="image/*">
+                            {% if action == 'update' and category.img_url %}
+                                <div class="current-image">
+                                    <img src="{{ category.img_url.url }}" alt="Current image" id="currentImage">
+                                    <p>Current image</p>
+                                </div>
+                            {% endif %}
+                            <span class="error-text" id="img_urlError"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn">
+                            <i class="fas fa-save"></i> {% if action == 'add' %}Create Category{% else %}Update Category{% endif %}
+                        </button>
+                        <a href="{% url 'admin_panel:categories' %}" class="cancel-btn">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const action = '{{ action }}';
+        const categoryId = '{% if action == "update" %}{{ category.id }}{% endif %}';
+        const form = document.getElementById('categoryForm');
+        const message = document.getElementById('message');
+        const messageText = document.getElementById('messageText');
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function showMessage(text, type = 'error') {
+            messageText.textContent = text;
+            message.className = `message ${type}`;
+            message.style.display = 'flex';
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 5000);
+        }
+
+        function clearErrors() {
+            document.querySelectorAll('.error-text').forEach(el => el.textContent = '');
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearErrors();
+
+            const formData = new FormData(form);
+            
+            // Convert is_active to boolean
+            const isActive = formData.get('is_active') === 'true';
+            formData.set('is_active', isActive);
+
+            try {
+                let url, method;
+                if (action === 'add') {
+                    url = '/api/admin/categories/create/';
+                    method = 'POST';
+                } else {
+                    url = `/api/admin/categories/${categoryId}/update/`;
+                    method = 'PATCH';
+                }
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: formData,
+                    credentials: 'same-origin'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage(data.message || 'Category saved successfully!', 'success');
+                    setTimeout(() => {
+                        window.location.href = '{% url "admin_panel:categories" %}';
+                    }, 1500);
+                } else {
+                    if (data.errors) {
+                        // Display field errors
+                        Object.keys(data.errors).forEach(field => {
+                            const errorEl = document.getElementById(field + 'Error');
+                            if (errorEl) {
+                                errorEl.textContent = Array.isArray(data.errors[field]) 
+                                    ? data.errors[field][0] 
+                                    : data.errors[field];
+                            }
+                        });
+                    }
+                    showMessage(data.error || 'Failed to save category');
+                }
+            } catch (error) {
+                showMessage('An error occurred: ' + error.message);
+            }
+        });
+
+        // Preview image on file selection
+        const imageInput = document.getElementById('img_url');
+        if (imageInput) {
+            imageInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const currentImageDiv = document.querySelector('.current-image');
+                        if (currentImageDiv) {
+                            document.getElementById('currentImage').src = e.target.result;
+                        } else {
+                            const div = document.createElement('div');
+                            div.className = 'current-image';
+                            div.innerHTML = `
+                                <img src="${e.target.result}" alt="Preview" id="currentImage">
+                                <p>New image preview</p>
+                            `;
+                            imageInput.parentElement.appendChild(div);
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+

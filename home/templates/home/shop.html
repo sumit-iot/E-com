@@ -1,0 +1,347 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop - VHInternaltional</title>
+    <link rel="stylesheet" href="{% static 'home/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'home/css/shop.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-home"></i>
+                        <i class="fas fa-pencil-alt"></i>
+                    </div>
+                    <h1>VHInternaltional</h1>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="{% url 'home:index' %}">Home</a></li>
+                    <li><a href="{% url 'home:shop' %}" class="active">Shop</a></li>
+                    <li><a href="{% url 'home:about' %}">About</a></li>
+                    <li><a href="{% url 'home:contact' %}">Contact</a></li>
+                </ul>
+                <div class="nav-icons">
+                    <div class="user-menu-wrapper">
+                        <button class="icon-link user-icon-btn" onclick="toggleUserMenu(event)">
+                            <i class="fas fa-user"></i>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            {% if user.is_authenticated %}
+                                {% if user.is_staff or user.is_superuser or user.user_type == 'admin' or user.user_type == 'superadmin' %}
+                                    <div class="user-role-badge">Admin</div>
+                                {% endif %}
+                                <a href="#" class="dropdown-item active">
+                                    <i class="fas fa-user-circle"></i>
+                                    <span>My Profile</span>
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-box-open"></i>
+                                    <span>My Orders</span>
+                                </a>
+                                {% if user.is_staff or user.is_superuser or user.user_type == 'admin' or user.user_type == 'superadmin' %}
+                                    <a href="{% url 'admin_panel:dashboard' %}" class="dropdown-item">
+                                        <i class="fas fa-shopping-bag"></i>
+                                        <span>Manage Items</span>
+                                    </a>
+                                {% endif %}
+                                <div class="dropdown-divider"></div>
+                                <a href="{% url 'account:signout' %}" class="dropdown-item logout">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span>Logout</span>
+                                </a>
+                            {% else %}
+                                <a href="{% url 'account:signin' %}" class="dropdown-item">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                    <span>Sign In</span>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <a href="#" class="icon-link"><i class="fas fa-search"></i></a>
+                    <a href="#" class="icon-link"><i class="far fa-heart"></i></a>
+                    <a href="#" class="icon-link"><i class="fas fa-shopping-cart"></i></a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section
+    <section class="shop-hero">
+        <div class="hero-background">
+            <div class="hero-background-overlay"></div>
+        </div>
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">Shop</h1>
+                <nav class="breadcrumbs">
+                    <div class="breadcrumbs">
+                <a href="{% url 'home:index' %}">Home</a> > Shop
+            </div>
+                </nav>
+            </div>
+            </h1>
+            
+        </div>
+    </section> -->
+
+    <!-- Shop Section -->
+    <section class="shop-section">
+        <div class="container">
+            <!-- Filter and Sort Bar -->
+            <div class="filter-sort-bar">
+                <div class="filter-left">
+                    <button class="filter-btn">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                    <div class="layout-toggle">
+                        <button class="layout-btn active" data-layout="grid">
+                            <i class="fas fa-th"></i>
+                        </button>
+                        <button class="layout-btn" data-layout="list">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="filter-center">
+                    <span class="results-count">Showing {{ products.start_index }}-{{ products.end_index }} of {{ products.paginator.count }} results</span>
+                </div>
+                <div class="filter-right">
+                    <div class="filter-group">
+                        <label>Show</label>
+                        <select name="page_size" id="pageSize" class="filter-select" onchange="updatePageSize(this.value)">
+                            <option value="16" {% if current_page_size == 16 %}selected{% endif %}>16</option>
+                            <option value="32" {% if current_page_size == 32 %}selected{% endif %}>32</option>
+                            <option value="48" {% if current_page_size == 48 %}selected{% endif %}>48</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Sort by</label>
+                        <select name="ordering" id="sortBy" class="filter-select" onchange="updateSorting(this.value)">
+                            <option value="-created_on" {% if current_ordering == '-created_on' %}selected{% endif %}>Default</option>
+                            <option value="name" {% if current_ordering == 'name' %}selected{% endif %}>Name A-Z</option>
+                            <option value="-name" {% if current_ordering == '-name' %}selected{% endif %}>Name Z-A</option>
+                            <option value="cost" {% if current_ordering == 'cost' %}selected{% endif %}>Price Low-High</option>
+                            <option value="-cost" {% if current_ordering == '-cost' %}selected{% endif %}>Price High-Low</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="products-grid" id="productsGrid">
+                {% for product in products %}
+                    <div class="product-card">
+                        <div class="product-image-wrapper">
+                            {% if product.img_url %}
+                                <img src="{{ product.img_url.url }}" alt="{{ product.name }}" class="product-image">
+                            {% else %}
+                                <div class="placeholder-img">No Image</div>
+                            {% endif %}
+                            
+                            {% if product.discount > 0 %}
+                                <span class="discount-badge">-{{ product.discount }}%</span>
+                            {% elif forloop.counter <= 4 %}
+                                <span class="new-badge">New</span>
+                            {% endif %}
+                            
+                            <!-- Hover Overlay -->
+                            <div class="product-overlay">
+                                <button class="add-to-cart-btn">Add to cart</button>
+                                <div class="product-actions">
+                                    <a href="#" class="action-icon" title="Share">
+                                        <i class="fas fa-share-alt"></i>
+                                    </a>
+                                    <a href="#" class="action-icon" title="Compare">
+                                        <i class="fas fa-exchange-alt"></i>
+                                    </a>
+                                    <a href="#" class="action-icon" title="Like">
+                                        <i class="far fa-heart"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">{{ product.name }}</h3>
+                            <p class="product-description">
+                                {% if product.description %}
+                                    {{ product.description|truncatewords:8 }}
+                                {% else %}
+                                    Stylish furniture piece
+                                {% endif %}
+                            </p>
+                            <div class="product-price">
+                                {% if product.discount > 0 %}
+                                    <span class="original-price">Rp {{ product.cost|floatformat:0|stringformat:"g" }}</span>
+                                {% endif %}
+                                <span class="current-price">Rp {{ product.discounted_price|floatformat:0|stringformat:"g" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="no-products">
+                        <p>No products found.</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if products.has_other_pages %}
+                <div class="pagination">
+                    {% if products.has_previous %}
+                        <a href="?page={{ products.previous_page_number }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_page_size %}&page_size={{ current_page_size }}{% endif %}{% if current_ordering %}&ordering={{ current_ordering }}{% endif %}" class="page-link">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    {% endif %}
+                    
+                    {% for num in products.paginator.page_range %}
+                        {% if products.number == num %}
+                            <span class="page-number active">{{ num }}</span>
+                        {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                            <a href="?page={{ num }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_page_size %}&page_size={{ current_page_size }}{% endif %}{% if current_ordering %}&ordering={{ current_ordering }}{% endif %}" class="page-number">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if products.has_next %}
+                        <a href="?page={{ products.next_page_number }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_page_size %}&page_size={{ current_page_size }}{% endif %}{% if current_ordering %}&ordering={{ current_ordering }}{% endif %}" class="page-link">
+                            <i class="fas fa-chevron-right"></i> Next
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="benefits-section">
+        <div class="container">
+            <div class="benefits-grid">
+                <div class="benefit-item">
+                    <div class="benefit-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="benefit-content">
+                        <h3>High Quality</h3>
+                        <p>crafted from top materials</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">
+                        <i class="fas fa-shield-check"></i>
+                    </div>
+                    <div class="benefit-content">
+                        <h3>Warranty Protection</h3>
+                        <p>Over 2 years</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="benefit-content">
+                        <h3>Free Shipping</h3>
+                        <p>Order over 150 $</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <div class="benefit-content">
+                        <h3>24 / 7 Support</h3>
+                        <p>Dedicated support</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>VHInternaltional</h3>
+                    <p>400 University Drive Suite 200 Coral Gables, FL 33134 USA</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Links</h4>
+                    <ul>
+                        <li><a href="{% url 'home:index' %}">Home</a></li>
+                        <li><a href="{% url 'home:shop' %}">Shop</a></li>
+                        <li><a href="{% url 'home:about' %}">About</a></li>
+                        <li><a href="{% url 'home:contact' %}">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Help</h4>
+                    <ul>
+                        <li><a href="#">Payment Options</a></li>
+                        <li><a href="{% url 'home:return-policy' %}">Returns</a></li>
+                        <li><a href="{% url 'home:privacy-policy' %}">Privacy Policies</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Newsletter</h4>
+                    <form class="newsletter-form">
+                        <input type="email" placeholder="Enter Your Email Address" required>
+                        <button type="submit" class="btn btn-primary">SUBSCRIBE</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>2023 furino. All rights reverved</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function updatePageSize(value) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('page_size', value);
+            url.searchParams.set('page', '1');
+            window.location.href = url.toString();
+        }
+
+        function updateSorting(value) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('ordering', value);
+            url.searchParams.set('page', '1');
+            window.location.href = url.toString();
+        }
+
+        // Layout toggle
+        document.querySelectorAll('.layout-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const layout = this.dataset.layout;
+                const grid = document.getElementById('productsGrid');
+                grid.className = 'products-grid ' + layout;
+            });
+        });
+
+        // User dropdown toggle
+        function toggleUserMenu(event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('userDropdown');
+            const button = document.querySelector('.user-icon-btn');
+            if (dropdown && button && !dropdown.contains(event.target) && !button.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+    </script>
+</body>
+</html>
