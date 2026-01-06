@@ -28,8 +28,8 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 # Razorpay Settings
-RAZORPAY_KEY_ID = "rzp_test_E9RUW3lWWFhhM7"  # Replace with your Razorpay Key ID
-RAZORPAY_KEY_SECRET = "WVULeYwHg6vmlhUR6IaS3Vg8"  # Replace with your Razorpay Key Secret
+RAZORPAY_KEY_ID = "7"  # Replace with your Razorpay Key ID
+RAZORPAY_KEY_SECRET = ""  # Replace with your Razorpay Key Secret
 
 # Email Settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

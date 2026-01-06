@@ -832,12 +832,20 @@ def get_order(request, order_id):
 @api_view(['PATCH', 'PUT'])
 @permission_classes([IsAdminOrSuperAdmin])
 def update_order_status(request, order_id):
-    """Update order status"""
+    """Update order status and auto-process refunds if status is 'processing'"""
     try:
-        from home.models import Order
+        from home.models import Order, ReturnRequest
+        from django.utils import timezone
+        from django.conf import settings
+        import razorpay
+        from decimal import Decimal
+        import logging
+        
+        logger = logging.getLogger(__name__)
         
         order = Order.objects.get(id=order_id)
         data = request.data
+        old_status = order.status
         
         # Update status if provided
         if 'status' in data:
@@ -862,6 +870,119 @@ def update_order_status(request, order_id):
             order.payment_status = payment_status_value
         
         order.save()
+        
+        # If order status is changed to 'processing', automatically process refunds for pending return requests
+        if 'status' in data and status_value == 'processing' :
+            logger.info(f"Order status changed to 'processing' for Order: {order.order_number} (ID: {order.id})")
+            print(f"[ORDER REFUND] Order status changed to 'processing' for Order: {order.order_number} (ID: {order.id})")
+            
+            # Get all pending return requests for this order
+            return_requests = ReturnRequest.objects.filter(
+                order=order,
+                status='pending'
+            ).select_related('order_item')
+            
+            if return_requests.exists():
+                logger.info(f"Found {return_requests.count()} pending return request(s) for order {order.order_number}")
+                print(f"[ORDER REFUND] Found {return_requests.count()} pending return request(s) for order {order.order_number}")
+                
+                # Check if order has payment
+                if order.razorpay_payment_id:
+                    logger.info(f"Order has Razorpay Payment ID: {order.razorpay_payment_id}. Processing refunds...")
+                    print(f"[ORDER REFUND] Order has Razorpay Payment ID: {order.razorpay_payment_id}. Processing refunds...")
+                    
+                    # Initialize Razorpay client
+                    razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+                    
+                    # Process refund for each return request
+                    for return_request in return_requests:
+                        if return_request.razorpay_refund_id:
+                            logger.warning(f"Return Request {return_request.id} already has refund ID: {return_request.razorpay_refund_id}. Skipping...")
+                            print(f"[ORDER REFUND] Return Request {return_request.id} already has refund ID: {return_request.razorpay_refund_id}. Skipping...")
+                            continue
+                        
+                        try:
+                            # Calculate refund amount (proportional to quantity returned)
+                            item_total = float(return_request.order_item.subtotal)
+                            item_quantity = return_request.order_item.quantity
+                            return_quantity = return_request.quantity
+                            refund_amount = (item_total / item_quantity) * return_quantity
+                            
+                            # Convert to paise (Razorpay uses smallest currency unit)
+                            refund_amount_paise = int(refund_amount * 100)
+                            
+                            logger.info(f"Processing refund for Return Request {return_request.id} - Amount: Rs. {refund_amount} ({refund_amount_paise} paise)")
+                            print(f"[ORDER REFUND] Processing refund for Return Request {return_request.id} - Amount: Rs. {refund_amount} ({refund_amount_paise} paise)")
+                            
+                            # Create refund via Razorpay
+                            refund_data = {
+                                'amount': refund_amount_paise,
+                                'speed': 'normal',
+                                'notes': {
+                                    'return_request_id': str(return_request.id),
+                                    'order_number': order.order_number,
+                                    'reason': return_request.get_reason_display(),
+                                }
+                            }
+                            
+                            logger.info(f"Calling Razorpay refund API - Payment ID: {order.razorpay_payment_id}, Amount: {refund_amount_paise} paise")
+                            print(f"[ORDER REFUND] Calling Razorpay refund API - Payment ID: {order.razorpay_payment_id}, Amount: {refund_amount_paise} paise")
+                            print(f"[ORDER REFUND] Refund Data: {refund_data}")
+                            
+                            refund_response = razorpay_client.payment.refund(
+                                order.razorpay_payment_id,
+                                refund_data
+                            )
+                            
+                            logger.info(f"Razorpay refund API response received: {refund_response}")
+                            print(f"[ORDER REFUND] Razorpay refund API response received: {refund_response}")
+                            print(f"[ORDER REFUND] Got the refund from Razorpay - Refund ID: {refund_response.get('id')}, Amount: Rs. {refund_amount}, Order: {order.order_number}, Return Request: {return_request.id}")
+                            logger.info(f"Got the refund from Razorpay - Refund ID: {refund_response.get('id')}, Amount: Rs. {refund_amount}, Order: {order.order_number}, Return Request: {return_request.id}")
+                            
+                            # Update return request with refund details
+                            return_request.refund_amount = Decimal(str(refund_amount))
+                            return_request.razorpay_refund_id = refund_response.get('id')
+                            return_request.refund_status = refund_response.get('status', 'processed')
+                            return_request.status = 'completed'
+                            return_request.refunded_at = timezone.now()
+                            return_request.processed_by = request.user
+                            return_request.processed_at = timezone.now()
+                            return_request.save()
+                            
+                            logger.info(f"Return request {return_request.id} updated with refund details. Status changed to 'completed'")
+                            print(f"[ORDER REFUND] Return request {return_request.id} updated with refund details. Status changed to 'completed'")
+                            
+                            # Send email notifications
+                            logger.info(f"Sending refund notification emails for Return Request {return_request.id}")
+                            print(f"[ORDER REFUND] Sending refund notification emails for Return Request {return_request.id}")
+                            send_refund_notification_emails(return_request, refund_response, refund_amount)
+                            
+                        except razorpay.errors.BadRequestError as e:
+                            logger.error(f"Razorpay refund API error for Return Request {return_request.id} (BadRequestError): {str(e)}")
+                            print(f"[ORDER REFUND ERROR] Razorpay refund API error for Return Request {return_request.id} (BadRequestError): {str(e)}")
+                            # Continue with other return requests even if one fails
+                            continue
+                        except Exception as e:
+                            logger.error(f"Error processing refund for Return Request {return_request.id}: {str(e)}", exc_info=True)
+                            print(f"[ORDER REFUND ERROR] Error processing refund for Return Request {return_request.id}: {str(e)}")
+                            import traceback
+                            print(f"[ORDER REFUND ERROR] Traceback: {traceback.format_exc()}")
+                            # Continue with other return requests even if one fails
+                            continue
+                    
+                    # Update order payment status if all items are refunded
+                    total_refunded = sum(float(req.refund_amount) for req in return_requests if req.refund_amount)
+                    if total_refunded >= float(order.total):
+                        order.payment_status = 'refunded'
+                        order.save()
+                        logger.info(f"Order payment status updated to 'refunded' (full refund)")
+                        print(f"[ORDER REFUND] Order payment status updated to 'refunded' (full refund)")
+                else:
+                    logger.warning(f"Order {order.order_number} does not have Razorpay Payment ID. Cannot process refunds.")
+                    print(f"[ORDER REFUND] Order {order.order_number} does not have Razorpay Payment ID. Cannot process refunds.")
+            else:
+                logger.info(f"No pending return requests found for order {order.order_number}")
+                print(f"[ORDER REFUND] No pending return requests found for order {order.order_number}")
         
         return Response({
             'message': 'Order updated successfully',
@@ -995,10 +1116,19 @@ def update_return_request_status(request, return_request_id):
         
         # If status is changed to 'processing', automatically process refund
         if 'status' in data and status_value == 'processing' and old_status != 'processing':
+            import logging
+            logger = logging.getLogger(__name__)
+            
             order = return_request.order
+            
+            logger.info(f"Status changed to 'processing' for Return Request: {return_request.id}, Order: {order.order_number}")
+            print(f"[RETURN REFUND] Status changed to 'processing' for Return Request: {return_request.id}, Order: {order.order_number}")
             
             # Check if order has payment
             if order.razorpay_payment_id:
+                logger.info(f"Order has Razorpay Payment ID: {order.razorpay_payment_id}. Proceeding with refund...")
+                print(f"[RETURN REFUND] Order has Razorpay Payment ID: {order.razorpay_payment_id}. Proceeding with refund...")
+                
                 # Check if refund already processed
                 if not return_request.razorpay_refund_id:
                     try:
@@ -1010,6 +1140,9 @@ def update_return_request_status(request, return_request_id):
                         
                         # Convert to paise (Razorpay uses smallest currency unit)
                         refund_amount_paise = int(refund_amount * 100)
+                        
+                        logger.info(f"Calculated refund amount: Rs. {refund_amount} ({refund_amount_paise} paise)")
+                        print(f"[RETURN REFUND] Calculated refund amount: Rs. {refund_amount} ({refund_amount_paise} paise)")
                         
                         # Initialize Razorpay client
                         razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
@@ -1025,16 +1158,19 @@ def update_return_request_status(request, return_request_id):
                             }
                         }
                         
+                        logger.info(f"Calling Razorpay refund API - Payment ID: {order.razorpay_payment_id}, Amount: {refund_amount_paise} paise")
+                        print(f"[RETURN REFUND] Calling Razorpay refund API - Payment ID: {order.razorpay_payment_id}, Amount: {refund_amount_paise} paise")
+                        print(f"[RETURN REFUND] Refund Data: {refund_data}")
+                        
                         refund_response = razorpay_client.payment.refund(
                             order.razorpay_payment_id,
                             refund_data
                         )
                         
-                        # Log successful refund
-                        import logging
-                        logger = logging.getLogger(__name__)
+                        logger.info(f"Razorpay refund API response received: {refund_response}")
+                        print(f"[RETURN REFUND] Razorpay refund API response received: {refund_response}")
+                        print(f"[RETURN REFUND] Got the refund from Razorpay - Refund ID: {refund_response.get('id')}, Amount: Rs. {refund_amount}, Order: {order.order_number}, Return Request: {return_request.id}")
                         logger.info(f"Got the refund from Razorpay - Refund ID: {refund_response.get('id')}, Amount: Rs. {refund_amount}, Order: {order.order_number}, Return Request: {return_request.id}")
-                        print(f"Got the refund from Razorpay - Refund ID: {refund_response.get('id')}, Amount: Rs. {refund_amount}, Order: {order.order_number}, Return Request: {return_request.id}")
                         
                         # Update return request with refund details
                         return_request.refund_amount = Decimal(str(refund_amount))
@@ -1043,26 +1179,41 @@ def update_return_request_status(request, return_request_id):
                         return_request.status = 'completed'  # Auto-complete after refund
                         return_request.refunded_at = timezone.now()
                         
+                        logger.info(f"Return request updated with refund details. Status changed to 'completed'")
+                        print(f"[RETURN REFUND] Return request updated with refund details. Status changed to 'completed'")
+                        
                         # Update order payment status if full refund
                         if refund_amount >= float(order.total):
                             order.payment_status = 'refunded'
                             order.save()
+                            logger.info(f"Order payment status updated to 'refunded' (full refund)")
+                            print(f"[RETURN REFUND] Order payment status updated to 'refunded' (full refund)")
                         
                         # Send email notifications
+                        logger.info(f"Sending refund notification emails to admin and user")
+                        print(f"[RETURN REFUND] Sending refund notification emails to admin and user")
                         send_refund_notification_emails(return_request, refund_response, refund_amount)
                         
                     except razorpay.errors.BadRequestError as e:
+                        logger.error(f"Razorpay refund API error (BadRequestError): {str(e)}")
+                        print(f"[RETURN REFUND ERROR] Razorpay refund API error (BadRequestError): {str(e)}")
                         return Response(
                             {'error': f'Razorpay refund error: {str(e)}'},
                             status=status.HTTP_400_BAD_REQUEST
                         )
                     except Exception as e:
                         # Log error but continue with status update
-                        import logging
-                        logger = logging.getLogger(__name__)
-                        logger.error(f"Error processing refund automatically: {str(e)}")
-                        print(f"Error processing refund automatically: {str(e)}")
+                        logger.error(f"Error processing refund automatically: {str(e)}", exc_info=True)
+                        print(f"[RETURN REFUND ERROR] Error processing refund automatically: {str(e)}")
+                        import traceback
+                        print(f"[RETURN REFUND ERROR] Traceback: {traceback.format_exc()}")
                         # Don't fail the status update, just log the error
+                else:
+                    logger.warning(f"Refund already processed for Return Request: {return_request.id}. Razorpay Refund ID: {return_request.razorpay_refund_id}")
+                    print(f"[RETURN REFUND] Refund already processed for Return Request: {return_request.id}. Razorpay Refund ID: {return_request.razorpay_refund_id}")
+            else:
+                logger.warning(f"Order does not have Razorpay Payment ID. Cannot process refund. Order: {order.order_number}")
+                print(f"[RETURN REFUND] Order does not have Razorpay Payment ID. Cannot process refund. Order: {order.order_number}")
         
         return_request.save()
         
