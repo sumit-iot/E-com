@@ -36,14 +36,18 @@ def dashboard_stats(request):
     """Get dashboard statistics"""
     try:
         from products.models import Product
+        from home.models import Order
         
         total_products = Product.objects.count()
         active_products = Product.objects.filter(is_active=True).count()
-        total_orders = 0
-        pending_orders = 0
+        total_orders = Order.objects.count()
+        pending_orders = Order.objects.filter(status='pending').count()
         total_users = User.objects.count()
         total_customers = User.objects.filter(user_type='common').count()
-        revenue = 0
+        
+        # Calculate revenue from paid orders
+        paid_orders = Order.objects.filter(payment_status='paid')
+        revenue = sum(float(order.total) for order in paid_orders)
         
         return Response({
             'total_products': total_products,
@@ -666,4 +670,612 @@ def delete_product(request, product_id):
             {'error': f'Error deleting product: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminOrSuperAdmin])
+def admin_orders_list(request):
+    """Get orders list for admin panel"""
+    try:
+        from home.models import Order, OrderItem
+        
+        search = request.query_params.get('search', '')
+        status_filter = request.query_params.get('status', 'all')
+        payment_status_filter = request.query_params.get('payment_status', 'all')
+        page = int(request.query_params.get('page', 1))
+        page_size = int(request.query_params.get('page_size', 20))
+        
+        orders = Order.objects.all().select_related('user').prefetch_related('items').order_by('-created_at')
+        
+        if search:
+            orders = orders.filter(
+                Q(order_number__icontains=search) |
+                Q(user__username__icontains=search) |
+                Q(user__email__icontains=search) |
+                Q(shipping_name__icontains=search)
+            )
+        
+        if status_filter != 'all':
+            orders = orders.filter(status=status_filter)
+        
+        if payment_status_filter != 'all':
+            orders = orders.filter(payment_status=payment_status_filter)
+        
+        # Manual pagination
+        total = orders.count()
+        start = (page - 1) * page_size
+        end = start + page_size
+        orders_page = orders[start:end]
+        
+        orders_data = []
+        for order in orders_page:
+            items_data = []
+            for item in order.items.all():
+                items_data.append({
+                    'id': str(item.id),
+                    'product_name': item.product_name,
+                    'quantity': item.quantity,
+                    'price': str(item.product_price),
+                    'subtotal': str(item.subtotal),
+                    'size': item.size or '',
+                    'color': item.color or '',
+                })
+            
+            orders_data.append({
+                'id': str(order.id),
+                'order_number': order.order_number,
+                'user': {
+                    'id': str(order.user.id),
+                    'username': order.user.username,
+                    'email': order.user.email,
+                },
+                'status': order.status,
+                'status_display': order.get_status_display(),
+                'payment_status': order.payment_status,
+                'payment_status_display': order.get_payment_status_display(),
+                'razorpay_payment_id': order.razorpay_payment_id or '',
+                'razorpay_order_id': order.razorpay_order_id or '',
+                'shipping_name': order.shipping_name,
+                'shipping_address': order.shipping_address,
+                'shipping_city': order.shipping_city,
+                'shipping_state': order.shipping_state,
+                'shipping_postal_code': order.shipping_postal_code,
+                'shipping_country': order.shipping_country,
+                'shipping_phone': order.shipping_phone or '',
+                'subtotal': str(order.subtotal),
+                'shipping_cost': str(order.shipping_cost),
+                'tax': str(order.tax),
+                'total': str(order.total),
+                'items': items_data,
+                'items_count': len(items_data),
+                'created_at': order.created_at.isoformat() if order.created_at else None,
+                'updated_at': order.updated_at.isoformat() if order.updated_at else None,
+            })
+        
+        return Response({
+            'orders': orders_data,
+            'count': total,
+            'page': page,
+            'page_size': page_size,
+            'num_pages': (total + page_size - 1) // page_size
+        }, status=status.HTTP_200_OK)
+    
+    except Exception as e:
+        return Response(
+            {'error': f'Error loading orders: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminOrSuperAdmin])
+def get_order(request, order_id):
+    """Get single order by ID"""
+    try:
+        from home.models import Order
+        
+        order = Order.objects.select_related('user').prefetch_related('items').get(id=order_id)
+        
+        items_data = []
+        for item in order.items.all():
+            items_data.append({
+                'id': str(item.id),
+                'product_name': item.product_name,
+                'quantity': item.quantity,
+                'price': str(item.product_price),
+                'subtotal': str(item.subtotal),
+                'size': item.size or '',
+                'color': item.color or '',
+            })
+        
+        return Response({
+            'id': str(order.id),
+            'order_number': order.order_number,
+            'user': {
+                'id': str(order.user.id),
+                'username': order.user.username,
+                'email': order.user.email,
+            },
+            'status': order.status,
+            'status_display': order.get_status_display(),
+            'payment_status': order.payment_status,
+            'payment_status_display': order.get_payment_status_display(),
+            'razorpay_payment_id': order.razorpay_payment_id or '',
+            'razorpay_order_id': order.razorpay_order_id or '',
+            'shipping_name': order.shipping_name,
+            'shipping_address': order.shipping_address,
+            'shipping_city': order.shipping_city,
+            'shipping_state': order.shipping_state,
+            'shipping_postal_code': order.shipping_postal_code,
+            'shipping_country': order.shipping_country,
+            'shipping_phone': order.shipping_phone or '',
+            'subtotal': str(order.subtotal),
+            'shipping_cost': str(order.shipping_cost),
+            'tax': str(order.tax),
+            'total': str(order.total),
+            'items': items_data,
+            'created_at': order.created_at.isoformat() if order.created_at else None,
+            'updated_at': order.updated_at.isoformat() if order.updated_at else None,
+        }, status=status.HTTP_200_OK)
+    except Order.DoesNotExist:
+        return Response(
+            {'error': 'Order not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response(
+            {'error': f'Error loading order: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['PATCH', 'PUT'])
+@permission_classes([IsAdminOrSuperAdmin])
+def update_order_status(request, order_id):
+    """Update order status"""
+    try:
+        from home.models import Order
+        
+        order = Order.objects.get(id=order_id)
+        data = request.data
+        
+        # Update status if provided
+        if 'status' in data:
+            status_value = data['status']
+            valid_statuses = [choice[0] for choice in Order.STATUS_CHOICES]
+            if status_value not in valid_statuses:
+                return Response(
+                    {'error': f'Invalid status. Must be one of: {", ".join(valid_statuses)}'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            order.status = status_value
+        
+        # Update payment_status if provided
+        if 'payment_status' in data:
+            payment_status_value = data['payment_status']
+            valid_payment_statuses = [choice[0] for choice in Order.PAYMENT_STATUS_CHOICES]
+            if payment_status_value not in valid_payment_statuses:
+                return Response(
+                    {'error': f'Invalid payment status. Must be one of: {", ".join(valid_payment_statuses)}'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            order.payment_status = payment_status_value
+        
+        order.save()
+        
+        return Response({
+            'message': 'Order updated successfully',
+            'order': {
+                'id': str(order.id),
+                'order_number': order.order_number,
+                'status': order.status,
+                'status_display': order.get_status_display(),
+                'payment_status': order.payment_status,
+                'payment_status_display': order.get_payment_status_display(),
+            }
+        }, status=status.HTTP_200_OK)
+    
+    except Order.DoesNotExist:
+        return Response(
+            {'error': 'Order not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response(
+            {'error': f'Error updating order: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminOrSuperAdmin])
+def admin_return_requests_list(request):
+    """Get return requests list for admin panel"""
+    try:
+        from home.models import ReturnRequest
+        
+        status_filter = request.query_params.get('status', 'all')
+        page = int(request.query_params.get('page', 1))
+        page_size = int(request.query_params.get('page_size', 20))
+        
+        return_requests = ReturnRequest.objects.all().select_related(
+            'order', 'order_item', 'user', 'processed_by'
+        ).order_by('-created_at')
+        
+        if status_filter != 'all':
+            return_requests = return_requests.filter(status=status_filter)
+        
+        # Manual pagination
+        total = return_requests.count()
+        start = (page - 1) * page_size
+        end = start + page_size
+        requests_page = return_requests[start:end]
+        
+        requests_data = []
+        for req in requests_page:
+            requests_data.append({
+                'id': str(req.id),
+                'order_number': req.order.order_number,
+                'order_id': str(req.order.id),
+                'product_name': req.order_item.product_name,
+                'quantity': req.quantity,
+                'reason': req.get_reason_display(),
+                'reason_description': req.reason_description or '',
+                'status': req.status,
+                'status_display': req.get_status_display(),
+                'admin_notes': req.admin_notes or '',
+                'user': {
+                    'id': str(req.user.id),
+                    'username': req.user.username,
+                    'email': req.user.email,
+                },
+                'processed_by': {
+                    'id': str(req.processed_by.id),
+                    'username': req.processed_by.username,
+                } if req.processed_by else None,
+                'refund_amount': str(req.refund_amount) if req.refund_amount else None,
+                'razorpay_refund_id': req.razorpay_refund_id or '',
+                'refund_status': req.refund_status or '',
+                'created_at': req.created_at.isoformat() if req.created_at else None,
+                'updated_at': req.updated_at.isoformat() if req.updated_at else None,
+                'processed_at': req.processed_at.isoformat() if req.processed_at else None,
+                'refunded_at': req.refunded_at.isoformat() if req.refunded_at else None,
+            })
+        
+        return Response({
+            'return_requests': requests_data,
+            'count': total,
+            'page': page,
+            'page_size': page_size,
+            'num_pages': (total + page_size - 1) // page_size
+        }, status=status.HTTP_200_OK)
+    
+    except Exception as e:
+        return Response(
+            {'error': f'Error loading return requests: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['PATCH', 'PUT'])
+@permission_classes([IsAdminOrSuperAdmin])
+def update_return_request_status(request, return_request_id):
+    """Update return request status and auto-process refund if status is 'processing'"""
+    try:
+        from home.models import ReturnRequest, Order
+        from django.utils import timezone
+        from django.conf import settings
+        import razorpay
+        from decimal import Decimal
+        
+        return_request = ReturnRequest.objects.select_related('order', 'order_item').get(id=return_request_id)
+        data = request.data
+        
+        old_status = return_request.status
+        
+        # Update status if provided
+        if 'status' in data:
+            status_value = data['status']
+            valid_statuses = [choice[0] for choice in ReturnRequest.STATUS_CHOICES]
+            if status_value not in valid_statuses:
+                return Response(
+                    {'error': f'Invalid status. Must be one of: {", ".join(valid_statuses)}'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            return_request.status = status_value
+            
+            # Set processed_by and processed_at if status is being changed from pending
+            if return_request.status != 'pending' and not return_request.processed_by:
+                return_request.processed_by = request.user
+                return_request.processed_at = timezone.now()
+        
+        # Update admin notes if provided
+        if 'admin_notes' in data:
+            return_request.admin_notes = data['admin_notes']
+        
+        # If status is changed to 'processing', automatically process refund
+        if 'status' in data and status_value == 'processing' and old_status != 'processing':
+            order = return_request.order
+            
+            # Check if order has payment
+            if order.razorpay_payment_id:
+                # Check if refund already processed
+                if not return_request.razorpay_refund_id:
+                    try:
+                        # Calculate refund amount (proportional to quantity returned)
+                        item_total = float(return_request.order_item.subtotal)
+                        item_quantity = return_request.order_item.quantity
+                        return_quantity = return_request.quantity
+                        refund_amount = (item_total / item_quantity) * return_quantity
+                        
+                        # Convert to paise (Razorpay uses smallest currency unit)
+                        refund_amount_paise = int(refund_amount * 100)
+                        
+                        # Initialize Razorpay client
+                        razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+                        
+                        # Create refund via Razorpay
+                        refund_data = {
+                            'amount': refund_amount_paise,
+                            'speed': 'normal',  # or 'optimum' for faster refunds
+                            'notes': {
+                                'return_request_id': str(return_request.id),
+                                'order_number': order.order_number,
+                                'reason': return_request.get_reason_display(),
+                            }
+                        }
+                        
+                        refund_response = razorpay_client.payment.refund(
+                            order.razorpay_payment_id,
+                            refund_data
+                        )
+                        
+                        # Log successful refund
+                        import logging
+                        logger = logging.getLogger(__name__)
+                        logger.info(f"Got the refund from Razorpay - Refund ID: {refund_response.get('id')}, Amount: Rs. {refund_amount}, Order: {order.order_number}, Return Request: {return_request.id}")
+                        print(f"Got the refund from Razorpay - Refund ID: {refund_response.get('id')}, Amount: Rs. {refund_amount}, Order: {order.order_number}, Return Request: {return_request.id}")
+                        
+                        # Update return request with refund details
+                        return_request.refund_amount = Decimal(str(refund_amount))
+                        return_request.razorpay_refund_id = refund_response.get('id')
+                        return_request.refund_status = refund_response.get('status', 'processed')
+                        return_request.status = 'completed'  # Auto-complete after refund
+                        return_request.refunded_at = timezone.now()
+                        
+                        # Update order payment status if full refund
+                        if refund_amount >= float(order.total):
+                            order.payment_status = 'refunded'
+                            order.save()
+                        
+                        # Send email notifications
+                        send_refund_notification_emails(return_request, refund_response, refund_amount)
+                        
+                    except razorpay.errors.BadRequestError as e:
+                        return Response(
+                            {'error': f'Razorpay refund error: {str(e)}'},
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
+                    except Exception as e:
+                        # Log error but continue with status update
+                        import logging
+                        logger = logging.getLogger(__name__)
+                        logger.error(f"Error processing refund automatically: {str(e)}")
+                        print(f"Error processing refund automatically: {str(e)}")
+                        # Don't fail the status update, just log the error
+        
+        return_request.save()
+        
+        return Response({
+            'message': 'Return request updated successfully',
+            'return_request': {
+                'id': str(return_request.id),
+                'status': return_request.status,
+                'status_display': return_request.get_status_display(),
+                'admin_notes': return_request.admin_notes or '',
+                'refund_amount': str(return_request.refund_amount) if return_request.refund_amount else None,
+                'razorpay_refund_id': return_request.razorpay_refund_id or '',
+                'refund_status': return_request.refund_status or '',
+            }
+        }, status=status.HTTP_200_OK)
+    
+    except ReturnRequest.DoesNotExist:
+        return Response(
+            {'error': 'Return request not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response(
+            {'error': f'Error updating return request: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminOrSuperAdmin])
+def process_refund(request, return_request_id):
+    """Process refund via Razorpay for a return request"""
+    try:
+        from home.models import ReturnRequest, Order
+        from django.utils import timezone
+        from django.conf import settings
+        import razorpay
+        from decimal import Decimal
+        
+        return_request = ReturnRequest.objects.select_related('order', 'order_item').get(id=return_request_id)
+        data = request.data
+        
+        # Validate return request status - should be processing or approved
+        if return_request.status not in ['processing', 'approved']:
+            return Response(
+                {'error': 'Refund can only be processed for return requests with status "processing" or "approved"'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Check if order has payment
+        order = return_request.order
+        if not order.razorpay_payment_id:
+            return Response(
+                {'error': 'Order does not have a Razorpay payment ID. Cannot process refund.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Calculate refund amount (proportional to quantity returned)
+        refund_amount = data.get('refund_amount')
+        if not refund_amount:
+            # Calculate proportional refund based on quantity
+            item_total = float(return_request.order_item.subtotal)
+            item_quantity = return_request.order_item.quantity
+            return_quantity = return_request.quantity
+            refund_amount = (item_total / item_quantity) * return_quantity
+        else:
+            refund_amount = float(refund_amount)
+        
+        # Convert to paise (Razorpay uses smallest currency unit)
+        refund_amount_paise = int(refund_amount * 100)
+        
+        # Initialize Razorpay client
+        razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+        
+        # Create refund via Razorpay
+        try:
+            refund_data = {
+                'amount': refund_amount_paise,
+                'speed': 'normal',  # or 'optimum' for faster refunds
+                'notes': {
+                    'return_request_id': str(return_request.id),
+                    'order_number': order.order_number,
+                    'reason': return_request.get_reason_display(),
+                }
+            }
+            
+            refund_response = razorpay_client.payment.refund(
+                order.razorpay_payment_id,
+                refund_data
+            )
+            
+            # Log successful refund
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"Got the refund from Razorpay - Refund ID: {refund_response.get('id')}, Amount: Rs. {refund_amount}, Order: {order.order_number}, Return Request: {return_request.id}")
+            print(f"Got the refund from Razorpay - Refund ID: {refund_response.get('id')}, Amount: Rs. {refund_amount}, Order: {order.order_number}, Return Request: {return_request.id}")
+            
+            # Update return request with refund details
+            return_request.refund_amount = Decimal(str(refund_amount))
+            return_request.razorpay_refund_id = refund_response.get('id')
+            return_request.refund_status = refund_response.get('status', 'processed')
+            return_request.status = 'completed'
+            return_request.refunded_at = timezone.now()
+            
+            if not return_request.processed_by:
+                return_request.processed_by = request.user
+                return_request.processed_at = timezone.now()
+            
+            return_request.save()
+            
+            # Update order payment status if full refund
+            if refund_amount >= float(order.total):
+                order.payment_status = 'refunded'
+                order.save()
+            
+            # Send email notifications
+            send_refund_notification_emails(return_request, refund_response, refund_amount)
+            
+            return Response({
+                'message': 'Refund processed successfully',
+                'refund': {
+                    'id': refund_response.get('id'),
+                    'amount': refund_amount,
+                    'status': refund_response.get('status'),
+                    'created_at': refund_response.get('created_at'),
+                },
+                'return_request': {
+                    'id': str(return_request.id),
+                    'status': return_request.status,
+                    'status_display': return_request.get_status_display(),
+                    'refund_amount': str(return_request.refund_amount),
+                    'refund_status': return_request.refund_status,
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except razorpay.errors.BadRequestError as e:
+            return Response(
+                {'error': f'Razorpay refund error: {str(e)}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Error processing refund: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    except ReturnRequest.DoesNotExist:
+        return Response(
+            {'error': 'Return request not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response(
+            {'error': f'Error processing refund: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+def send_refund_notification_emails(return_request, refund_response, refund_amount):
+    """Send email notifications to admin and user after refund is processed"""
+    try:
+        from django.core.mail import send_mail
+        from django.template.loader import render_to_string
+        from django.conf import settings
+        
+        order = return_request.order
+        user = return_request.user
+        
+        # Get admin email
+        admin_email = getattr(settings, 'ADMIN_EMAIL', 'admin@vhinternaltional.com')
+        
+        # Prepare email context
+        context = {
+            'return_request': return_request,
+            'order': order,
+            'order_item': return_request.order_item,
+            'user': user,
+            'refund_amount': refund_amount,
+            'refund_id': refund_response.get('id'),
+            'refund_status': refund_response.get('status'),
+            'site_url': getattr(settings, 'SITE_URL', 'http://localhost:8000'),
+        }
+        
+        # Send email to admin
+        admin_subject = f'Refund Processed - Order {order.order_number}'
+        admin_message = render_to_string('home/emails/refund_notification_admin.html', context)
+        
+        send_mail(
+            subject=admin_subject,
+            message='',  # Plain text version (optional)
+            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@vhinternaltional.com'),
+            recipient_list=[admin_email],
+            html_message=admin_message,
+            fail_silently=False,
+        )
+        
+        # Send email to user
+        user_subject = f'Refund Processed for Order {order.order_number}'
+        user_message = render_to_string('home/emails/refund_notification_user.html', context)
+        
+        send_mail(
+            subject=user_subject,
+            message='',  # Plain text version (optional)
+            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@vhinternaltional.com'),
+            recipient_list=[user.email],
+            html_message=user_message,
+            fail_silently=False,
+        )
+        
+    except Exception as e:
+        # Log error but don't fail the refund process
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error sending refund notification emails: {str(e)}")
+        print(f"Error sending refund notification emails: {str(e)}")
 

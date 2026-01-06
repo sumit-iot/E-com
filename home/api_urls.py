@@ -16,5 +16,13 @@ urlpatterns = [
     path('orders/create/', views_api.create_order, name='create-order'),
     path('orders/<uuid:order_id>/', views_api.get_order, name='get-order'),
     path('orders/<uuid:order_id>/status/', views_api.update_order_status, name='update-order-status'),
+    
+    # Razorpay Payment APIs
+    path('payment/razorpay/create-order/', views_api.create_razorpay_order, name='create-razorpay-order'),
+    path('payment/razorpay/verify/', views_api.verify_razorpay_payment, name='verify-razorpay-payment'),
+    
+    # Return Request APIs
+    path('returns/create/', views_api.create_return_request, name='create-return-request'),
+    path('returns/', views_api.get_return_requests, name='get-return-requests'),
 ]
 

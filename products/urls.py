@@ -7,3 +7,4 @@ router.register(r'products', ProductViewSet, basename='product')
 
 urlpatterns = router.urls
 
+

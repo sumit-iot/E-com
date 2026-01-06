@@ -41,7 +41,7 @@
                                     <i class="fas fa-user-circle"></i>
                                     <span>My Profile</span>
                                 </a>
-                                <a href="#" class="dropdown-item">
+                                <a href="{% url 'home:my-orders' %}" class="dropdown-item">
                                     <i class="fas fa-box-open"></i>
                                     <span>My Orders</span>
                                 </a>
@@ -370,9 +370,56 @@
                 // Redirect to checkout page
                 window.location.href = '{% url "home:checkout" %}';
             {% else %}
-                // Redirect to login
-                window.location.href = '{% url "account:signin" %}?next={% url "home:checkout" %}';
+                // Show popup and redirect to login
+                showLoginPopup();
             {% endif %}
+        }
+        
+        // Show login popup
+        function showLoginPopup() {
+            // Remove existing popup if any
+            const existing = document.querySelector('.login-popup-overlay');
+            if (existing) existing.remove();
+            
+            // Create popup overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'login-popup-overlay';
+            overlay.innerHTML = `
+                <div class="login-popup">
+                    <div class="popup-icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <h3 class="popup-title">Login Required</h3>
+                    <p class="popup-message">Please login to place an order</p>
+                    <div class="popup-buttons">
+                        <button class="btn-popup btn-primary" onclick="redirectToLogin()">Login</button>
+                        <button class="btn-popup btn-secondary" onclick="closeLoginPopup()">Cancel</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            // Close on overlay click
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) {
+                    closeLoginPopup();
+                }
+            });
+        }
+        
+        // Close popup
+        function closeLoginPopup() {
+            const popup = document.querySelector('.login-popup-overlay');
+            if (popup) {
+                popup.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => popup.remove(), 300);
+            }
+        }
+        
+        // Redirect to login
+        function redirectToLogin() {
+            window.location.href = '{% url "account:signin" %}?next={% url "home:checkout" %}';
         }
 
         // Get CSRF token

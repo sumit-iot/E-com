@@ -1,0 +1,395 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation - VHInternaltional</title>
+    <link rel="stylesheet" href="{% static 'home/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'home/css/order_confirmation.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-home"></i>
+                        <i class="fas fa-pencil-alt"></i>
+                    </div>
+                    <h1>VHInternaltional</h1>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="{% url 'home:index' %}">Home</a></li>
+                    <li><a href="{% url 'home:shop' %}">Shop</a></li>
+                    <li><a href="{% url 'home:about' %}">About</a></li>
+                    <li><a href="{% url 'home:contact' %}">Contact</a></li>
+                </ul>
+                <div class="nav-icons">
+                    <div class="user-menu-wrapper">
+                        <button class="icon-link user-icon-btn" onclick="toggleUserMenu(event)">
+                            <i class="fas fa-user"></i>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            {% if user.is_authenticated %}
+                                {% if user.is_staff or user.is_superuser or user.user_type == 'admin' or user.user_type == 'superadmin' %}
+                                    <div class="user-role-badge">Admin</div>
+                                {% endif %}
+                                <a href="#" class="dropdown-item active">
+                                    <i class="fas fa-user-circle"></i>
+                                    <span>My Profile</span>
+                                </a>
+                                <a href="{% url 'home:my-orders' %}" class="dropdown-item">
+                                    <i class="fas fa-box-open"></i>
+                                    <span>My Orders</span>
+                                </a>
+                                {% if user.is_staff or user.is_superuser or user.user_type == 'admin' or user.user_type == 'superadmin' %}
+                                    <a href="{% url 'admin_panel:dashboard' %}" class="dropdown-item">
+                                        <i class="fas fa-shopping-bag"></i>
+                                        <span>Manage Items</span>
+                                    </a>
+                                {% endif %}
+                                <div class="dropdown-divider"></div>
+                                <a href="{% url 'account:signout' %}" class="dropdown-item logout">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span>Logout</span>
+                                </a>
+                            {% else %}
+                                <a href="{% url 'account:signin' %}" class="dropdown-item">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                    <span>Sign In</span>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <a href="#" class="icon-link"><i class="fas fa-search"></i></a>
+                    <a href="#" class="icon-link"><i class="far fa-heart"></i></a>
+                    <a href="{% url 'home:cart' %}" class="icon-link cart-link">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-badge" id="cartBadge" style="display: none;">0</span>
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Order Confirmation Section -->
+    <section class="order-confirmation-section">
+        <div class="container">
+            <div class="confirmation-card">
+                <div class="success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h1 class="confirmation-title">Order Placed Successfully!</h1>
+                <p class="confirmation-message">Thank you for your purchase. Your order has been confirmed.</p>
+                
+                <div class="order-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Order Number:</span>
+                        <span class="detail-value">{{ order.order_number }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Order Date:</span>
+                        <span class="detail-value">{{ order.created_at|date:"F d, Y" }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Order Status:</span>
+                        <span class="detail-value status-badge status-{{ order.status }}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Payment Status:</span>
+                        <span class="detail-value payment-status {{ order.payment_status }}">
+                            {{ order.get_payment_status_display }}
+                        </span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Total Amount:</span>
+                        <span class="detail-value total-amount">Rs. {{ order.total|floatformat:2 }}</span>
+                    </div>
+                </div>
+
+                <div class="order-items-section">
+                    <h2 class="section-title">Order Items</h2>
+                    <div class="items-list">
+                        {% for item in order.items.all %}
+                            <div class="order-item">
+                                <div class="item-info">
+                                    <h3 class="item-name">{{ item.product_name }}</h3>
+                                    {% if item.size or item.color %}
+                                        <p class="item-attributes">
+                                            {% if item.size %}Size: {{ item.size }}{% endif %}
+                                            {% if item.size and item.color %} | {% endif %}
+                                            {% if item.color %}Color: {{ item.color }}{% endif %}
+                                        </p>
+                                    {% endif %}
+                                    <p class="item-quantity">Quantity: {{ item.quantity }}</p>
+                                    {% if order.status == 'delivered' %}
+                                        <button class="btn-return" onclick="openReturnModal('{{ order.id }}', '{{ item.id }}', '{{ item.product_name }}', {{ item.quantity }})">
+                                            <i class="fas fa-undo"></i> Request Return
+                                        </button>
+                                    {% endif %}
+                                </div>
+                                <div class="item-price">
+                                    Rs. {{ item.subtotal|floatformat:2 }}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="shipping-details">
+                    <h2 class="section-title">Shipping Address</h2>
+                    <div class="address-box">
+                        <p><strong>{{ order.shipping_name }}</strong></p>
+                        <p>{{ order.shipping_address }}</p>
+                        <p>{{ order.shipping_city }}, {{ order.shipping_state }} {{ order.shipping_postal_code }}</p>
+                        <p>{{ order.shipping_country }}</p>
+                        {% if order.shipping_phone %}
+                            <p>Phone: {{ order.shipping_phone }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <a href="{% url 'home:shop' %}" class="btn btn-secondary">Continue Shopping</a>
+                    <a href="#" class="btn btn-primary">View Order Details</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>High Quality</h3>
+                        <p>crafted from top materials</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Warranty Protection</h3>
+                        <p>Over 2 years</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Free Shipping</h3>
+                        <p>Order over 150 $</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>24 / 7 Support</h3>
+                        <p>Dedicated support</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>VHInternaltional</h3>
+                    <p>Asdullapur, Sultanpur Dost, Moradabad<br>
+                        244001, Uttar Pradesh</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Links</h4>
+                    <ul>
+                        <li><a href="{% url 'home:index' %}">Home</a></li>
+                        <li><a href="{% url 'home:shop' %}">Shop</a></li>
+                        <li><a href="{% url 'home:about' %}">About</a></li>
+                        <li><a href="{% url 'home:contact' %}">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Help</h4>
+                    <ul>
+                        <li><a href="#">Payment Options</a></li>
+                        <li><a href="{% url 'home:return-policy' %}">Returns</a></li>
+                        <li><a href="{% url 'home:privacy-policy' %}">Privacy Policies</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Newsletter</h4>
+                    <form class="newsletter-form">
+                        <input type="email" placeholder="Enter Your Email Address" required>
+                        <button type="submit" class="btn btn-primary">SUBSCRIBE</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>2025 furino. All rights reverved</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Return Request Modal -->
+    <div id="returnModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Request Product Return</h3>
+                <span class="close" onclick="closeReturnModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="returnRequestForm">
+                    <input type="hidden" id="returnOrderId">
+                    <input type="hidden" id="returnOrderItemId">
+                    <div class="form-group">
+                        <label>Product:</label>
+                        <p id="returnProductName" class="form-value"></p>
+                    </div>
+                    <div class="form-group">
+                        <label>Return Quantity:</label>
+                        <input type="number" id="returnQuantity" min="1" value="1" required>
+                        <small id="maxQuantity" class="form-help"></small>
+                    </div>
+                    <div class="form-group">
+                        <label>Return Reason: <span class="required">*</span></label>
+                        <select id="returnReason" required>
+                            <option value="">Select a reason</option>
+                            <option value="defective">Defective Product</option>
+                            <option value="wrong_item">Wrong Item Received</option>
+                            <option value="damaged">Damaged During Shipping</option>
+                            <option value="not_as_described">Not as Described</option>
+                            <option value="size_issue">Size Issue</option>
+                            <option value="color_issue">Color Issue</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Additional Details:</label>
+                        <textarea id="returnDescription" rows="4" placeholder="Please provide more details about your return request..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeReturnModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Submit Return Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // User dropdown toggle
+        function toggleUserMenu(event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('userDropdown');
+            const button = document.querySelector('.user-icon-btn');
+            if (dropdown && button && !dropdown.contains(event.target) && !button.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        // Return Request Modal Functions
+        function openReturnModal(orderId, orderItemId, productName, maxQuantity) {
+            document.getElementById('returnOrderId').value = orderId;
+            document.getElementById('returnOrderItemId').value = orderItemId;
+            document.getElementById('returnProductName').textContent = productName;
+            document.getElementById('returnQuantity').max = maxQuantity;
+            document.getElementById('returnQuantity').value = 1;
+            document.getElementById('maxQuantity').textContent = `Maximum: ${maxQuantity}`;
+            document.getElementById('returnReason').value = '';
+            document.getElementById('returnDescription').value = '';
+            document.getElementById('returnModal').style.display = 'block';
+        }
+
+        function closeReturnModal() {
+            document.getElementById('returnModal').style.display = 'none';
+        }
+
+        // Handle return request form submission
+        document.getElementById('returnRequestForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const orderId = document.getElementById('returnOrderId').value;
+            const orderItemId = document.getElementById('returnOrderItemId').value;
+            const quantity = parseInt(document.getElementById('returnQuantity').value);
+            const reason = document.getElementById('returnReason').value;
+            const description = document.getElementById('returnDescription').value;
+
+            fetch('/api/returns/create/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    order_id: orderId,
+                    order_item_id: orderItemId,
+                    quantity: quantity,
+                    reason: reason,
+                    reason_description: description
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                    return;
+                }
+                alert('Return request submitted successfully! Admin will be notified.');
+                closeReturnModal();
+                location.reload(); // Reload to show updated status
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to submit return request. Please try again.');
+            });
+        });
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('returnModal');
+            if (event.target === modal) {
+                closeReturnModal();
+            }
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>
+

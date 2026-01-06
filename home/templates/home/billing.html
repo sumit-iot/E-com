@@ -4,10 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout - VHInternaltional</title>
+    <title>Billing - VHInternaltional</title>
     <link rel="stylesheet" href="{% static 'home/css/style.css' %}">
-    <link rel="stylesheet" href="{% static 'home/css/checkout.css' %}">
+    <link rel="stylesheet" href="{% static 'home/css/billing.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 <body>
     <!-- Header -->
@@ -75,8 +76,8 @@
         </div>
     </header>
 
-    <!-- Checkout Hero Section -->
-    <section class="checkout-hero">
+    <!-- Billing Hero Section -->
+    <section class="billing-hero">
         <div class="hero-background"></div>
         <div class="hero-background-overlay"></div>
         <div class="container">
@@ -88,98 +89,23 @@
                     </svg>
                 </div>
                 <div class="hero-text">
-                    <h1 class="hero-title">Checkout</h1>
+                    <h1 class="hero-title">Billing</h1>
                     <nav class="breadcrumbs">
                         <a href="{% url 'home:index' %}">Home</a>
                         <span class="separator">></span>
-                        <span class="current">Checkout</span>
+                        <a href="{% url 'home:checkout' %}">Checkout</a>
+                        <span class="separator">></span>
+                        <span class="current">Billing</span>
                     </nav>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Checkout Section -->
-    <section class="checkout-section">
+    <!-- Billing Section -->
+    <section class="billing-section">
         <div class="container">
-            <div class="checkout-layout">
-                <!-- Billing Details Form -->
-                <div class="billing-details">
-                    <h2 class="section-title">Billing details</h2>
-                    <form id="checkoutForm" class="checkout-form">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="firstName">First Name <span class="required">*</span></label>
-                                <input type="text" id="firstName" name="firstName" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="lastName">Last Name <span class="required">*</span></label>
-                                <input type="text" id="lastName" name="lastName" required>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="companyName">Company Name (Optional)</label>
-                            <input type="text" id="companyName" name="companyName">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="country">Country / Region <span class="required">*</span></label>
-                            <select id="country" name="country" required>
-                                <option value="India">India</option>
-                                <option value="Sri Lanka">Sri Lanka</option>
-                                <option value="United States">United States</option>
-                                <option value="United Kingdom">United Kingdom</option>
-                                <option value="Canada">Canada</option>
-                                <option value="Australia">Australia</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="streetAddress">Street address <span class="required">*</span></label>
-                            <input type="text" id="streetAddress" name="streetAddress" placeholder="House number and street name" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="city">Town / City <span class="required">*</span></label>
-                            <input type="text" id="city" name="city" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="province">Province <span class="required">*</span></label>
-                            <select id="province" name="province" required>
-                                <option value="">Select Province</option>
-                                <option value="Uttar Pradesh">Uttar Pradesh</option>
-                                <option value="Delhi">Delhi</option>
-                                <option value="Maharashtra">Maharashtra</option>
-                                <option value="Karnataka">Karnataka</option>
-                                <option value="Tamil Nadu">Tamil Nadu</option>
-                                <option value="Western Province">Western Province</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="zipCode">ZIP code <span class="required">*</span></label>
-                            <input type="text" id="zipCode" name="zipCode" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="phone">Phone <span class="required">*</span></label>
-                            <input type="tel" id="phone" name="phone" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="email">Email address <span class="required">*</span></label>
-                            <input type="email" id="email" name="email" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="additionalInfo">Additional information</label>
-                            <textarea id="additionalInfo" name="additionalInfo" rows="4" placeholder="Additional information"></textarea>
-                        </div>
-                    </form>
-                </div>
-
+            <div class="billing-layout">
                 <!-- Order Summary -->
                 <div class="order-summary">
                     <h2 class="section-title">Product</h2>
@@ -198,9 +124,36 @@
                             <span class="total-value" id="orderTotal">Rs. 0.00</span>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Continue to Billing Button -->
-                    <button type="button" class="btn-place-order" id="continueToBillingBtn" onclick="continueToBilling()">Continue to Billing</button>
+                <!-- Payment Method -->
+                <div class="payment-section">
+                    <h2 class="section-title">Payment Method</h2>
+                    
+                    <div class="payment-options">
+                        <div class="payment-option">
+                            <input type="radio" id="bankTransfer" name="paymentMethod" value="bank_transfer" checked>
+                            <label for="bankTransfer">
+                                <span class="radio-label">Direct Bank Transfer</span>
+                                <p class="payment-description">Make your payment directly into our bank account. Please use your Order ID as the payment reference. Your order will not be shipped until the funds have cleared in our account.</p>
+                            </label>
+                        </div>
+                        <div class="payment-option">
+                            <input type="radio" id="cashOnDelivery" name="paymentMethod" value="cash_on_delivery">
+                            <label for="cashOnDelivery">
+                                <span class="radio-label">Cash On Delivery</span>
+                                <p class="payment-description">Pay with cash when your order is delivered.</p>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Privacy Policy -->
+                    <div class="privacy-policy">
+                        <p>Your personal data will be used to support your experience throughout this website, to manage access to your account, and for other purposes described in our <a href="{% url 'home:privacy-policy' %}">privacy policy</a>.</p>
+                    </div>
+
+                    <!-- Make Payment Button -->
+                    <button type="button" class="btn-make-payment" id="makePaymentBtn" onclick="makePayment()">Make Payment</button>
                 </div>
             </div>
         </div>
@@ -343,7 +296,7 @@
                     orderItems.innerHTML = '<div class="empty-cart"><p>Your cart is empty</p><a href="{% url "home:shop" %}" class="btn btn-primary">Continue Shopping</a></div>';
                     orderSubtotal.textContent = 'Rs. 0.00';
                     orderTotal.textContent = 'Rs. 0.00';
-                    document.getElementById('placeOrderBtn').disabled = true;
+                    document.getElementById('makePaymentBtn').disabled = true;
                 }
             } catch (error) {
                 console.error('Error loading order summary:', error);
@@ -351,39 +304,163 @@
             }
         }
 
-        // Continue to billing
-        function continueToBilling() {
+        // Make payment / Place order
+        async function makePayment() {
             {% if not user.is_authenticated %}
-                window.location.href = '{% url "account:signin" %}?next={% url "home:checkout" %}';
+                window.location.href = '{% url "account:signin" %}?next={% url "home:billing" %}';
                 return;
             {% endif %}
             
-            // Validate form
-            const form = document.getElementById('checkoutForm');
-            if (!form.checkValidity()) {
-                form.reportValidity();
+            // Get billing data from sessionStorage
+            const billingData = JSON.parse(sessionStorage.getItem('billingData') || '{}');
+            
+            if (!billingData.firstName || !billingData.lastName) {
+                alert('Please complete the checkout form first.');
+                window.location.href = '{% url "home:checkout" %}';
                 return;
             }
             
-            // Store form data in sessionStorage to pass to billing page
-            const formData = {
-                firstName: document.getElementById('firstName').value,
-                lastName: document.getElementById('lastName').value,
-                companyName: document.getElementById('companyName').value,
-                country: document.getElementById('country').value,
-                streetAddress: document.getElementById('streetAddress').value,
-                city: document.getElementById('city').value,
-                province: document.getElementById('province').value,
-                zipCode: document.getElementById('zipCode').value,
-                phone: document.getElementById('phone').value,
-                email: document.getElementById('email').value,
-                additionalInfo: document.getElementById('additionalInfo').value
+            // Get payment method
+            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+            
+            // Prepare billing data for order
+            const orderBillingData = {
+                shipping_name: `${billingData.firstName} ${billingData.lastName}`,
+                shipping_address: billingData.streetAddress,
+                shipping_city: billingData.city,
+                shipping_state: billingData.province,
+                shipping_postal_code: billingData.zipCode,
+                shipping_country: billingData.country,
+                shipping_phone: billingData.phone,
+                shipping_cost: 0,
+                tax: 0
             };
             
-            sessionStorage.setItem('billingData', JSON.stringify(formData));
+            // Disable button
+            const btn = document.getElementById('makePaymentBtn');
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
             
-            // Redirect to billing page
-            window.location.href = '{% url "home:billing" %}';
+            // Handle Cash on Delivery
+            if (paymentMethod === 'cash_on_delivery') {
+                try {
+                    const response = await fetch('/api/orders/create/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify(orderBillingData)
+                    });
+                    
+                    if (response.ok) {
+                        const order = await response.json();
+                        sessionStorage.removeItem('billingData');
+                        window.location.href = `/order/${order.id}/`;
+                    } else {
+                        const data = await response.json();
+                        alert(data.error || 'Failed to place order. Please try again.');
+                        btn.disabled = false;
+                        btn.textContent = 'Make Payment';
+                    }
+                } catch (error) {
+                    console.error('Error placing order:', error);
+                    alert('Error placing order. Please try again.');
+                    btn.disabled = false;
+                    btn.textContent = 'Make Payment';
+                }
+                return;
+            }
+            
+            // Handle Razorpay payment
+            try {
+                // Create Razorpay order
+                const orderResponse = await fetch('/api/payment/razorpay/create-order/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ billing_data: orderBillingData })
+                });
+                
+                if (!orderResponse.ok) {
+                    const error = await orderResponse.json();
+                    alert(error.error || 'Failed to create payment order');
+                    btn.disabled = false;
+                    btn.textContent = 'Make Payment';
+                    return;
+                }
+                
+                const razorpayOrder = await orderResponse.json();
+                
+                // Initialize Razorpay checkout
+                const options = {
+                    key: razorpayOrder.key,
+                    amount: razorpayOrder.amount,
+                    currency: razorpayOrder.currency,
+                    name: 'VHInternaltional',
+                    description: 'Order Payment',
+                    order_id: razorpayOrder.razorpay_order_id,
+                    handler: async function(response) {
+                        // Verify payment
+                        try {
+                            const verifyResponse = await fetch('/api/payment/razorpay/verify/', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': getCookie('csrftoken')
+                                },
+                                body: JSON.stringify({
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_signature: response.razorpay_signature,
+                                    billing_data: orderBillingData
+                                })
+                            });
+                            
+                            if (verifyResponse.ok) {
+                                const order = await verifyResponse.json();
+                                sessionStorage.removeItem('billingData');
+                                window.location.href = `/order/${order.id}/`;
+                            } else {
+                                const error = await verifyResponse.json();
+                                alert(error.error || 'Payment verification failed');
+                                btn.disabled = false;
+                                btn.textContent = 'Make Payment';
+                            }
+                        } catch (error) {
+                            console.error('Error verifying payment:', error);
+                            alert('Error verifying payment. Please contact support.');
+                            btn.disabled = false;
+                            btn.textContent = 'Make Payment';
+                        }
+                    },
+                    prefill: {
+                        name: `${billingData.firstName} ${billingData.lastName}`,
+                        email: billingData.email || '',
+                        contact: billingData.phone || ''
+                    },
+                    theme: {
+                        color: '#B88E2F'
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            btn.disabled = false;
+                            btn.textContent = 'Make Payment';
+                        }
+                    }
+                };
+                
+                const rzp = new Razorpay(options);
+                rzp.open();
+                
+            } catch (error) {
+                console.error('Error initiating payment:', error);
+                alert('Error initiating payment. Please try again.');
+                btn.disabled = false;
+                btn.textContent = 'Make Payment';
+            }
         }
 
         // Get CSRF token
@@ -402,15 +479,13 @@
             return cookieValue;
         }
 
-        // Pre-fill form if user is authenticated
-        {% if user.is_authenticated %}
-            document.getElementById('firstName').value = '{{ user.first_name|default:"" }}';
-            document.getElementById('lastName').value = '{{ user.last_name|default:"" }}';
-            document.getElementById('email').value = '{{ user.email|default:"" }}';
-            {% if user.mobile %}
-                document.getElementById('phone').value = '{{ user.mobile }}';
-            {% endif %}
-        {% endif %}
+        // Check if billing data exists, if not redirect to checkout
+        window.addEventListener('load', function() {
+            const billingData = sessionStorage.getItem('billingData');
+            if (!billingData) {
+                window.location.href = '{% url "home:checkout" %}';
+            }
+        });
 
         // Load order summary on page load
         loadOrderSummary();

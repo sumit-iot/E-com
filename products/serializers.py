@@ -64,3 +64,4 @@ class ProductListSerializer(serializers.ModelSerializer):
             'is_active', 'product_category', 'no_of_purchase', 'discounted_price'
         ]
 
+

@@ -98,6 +98,11 @@ class Order(models.Model):
     tax = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     
+    # Razorpay payment details
+    razorpay_order_id = models.CharField(max_length=255, null=True, blank=True)
+    razorpay_payment_id = models.CharField(max_length=255, null=True, blank=True)
+    razorpay_signature = models.CharField(max_length=255, null=True, blank=True)
+    
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -136,3 +141,58 @@ class OrderItem(models.Model):
     
     def __str__(self):
         return f"{self.quantity}x {self.product_name}"
+
+
+class ReturnRequest(models.Model):
+    """Product return request model"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('processing', 'Processing'),
+        ('completed', 'Completed'),
+    ]
+    
+    REASON_CHOICES = [
+        ('defective', 'Defective Product'),
+        ('wrong_item', 'Wrong Item Received'),
+        ('damaged', 'Damaged During Shipping'),
+        ('not_as_described', 'Not as Described'),
+        ('size_issue', 'Size Issue'),
+        ('color_issue', 'Color Issue'),
+        ('other', 'Other'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='return_requests')
+    order_item = models.ForeignKey(OrderItem, on_delete=models.CASCADE, related_name='return_requests')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='return_requests')
+    
+    reason = models.CharField(max_length=50, choices=REASON_CHOICES)
+    reason_description = models.TextField(blank=True, null=True)
+    quantity = models.IntegerField(default=1)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    # Admin response
+    admin_notes = models.TextField(blank=True, null=True)
+    processed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='processed_returns')
+    
+    # Refund details
+    refund_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    razorpay_refund_id = models.CharField(max_length=255, null=True, blank=True)
+    refund_status = models.CharField(max_length=50, null=True, blank=True)  # pending, processed, failed
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+    refunded_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        db_table = 'return_request'
+        verbose_name = 'Return Request'
+        verbose_name_plural = 'Return Requests'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Return Request for {self.order.order_number} - {self.order_item.product_name}"

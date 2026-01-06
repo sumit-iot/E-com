@@ -27,6 +27,21 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# Razorpay Settings
+RAZORPAY_KEY_ID = "rzp_test_E9RUW3lWWFhhM7"  # Replace with your Razorpay Key ID
+RAZORPAY_KEY_SECRET = "WVULeYwHg6vmlhUR6IaS3Vg8"  # Replace with your Razorpay Key Secret
+
+# Email Settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # Change to your SMTP server
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = ''  # Your email address
+EMAIL_HOST_PASSWORD = ''  # Your email password
+DEFAULT_FROM_EMAIL = 'noreply@vhinternaltional.com'
+ADMIN_EMAIL = 'admin@vhinternaltional.com'  # Admin email for notifications
+SITE_URL = 'http://localhost:8000'  # Your site URL
+
 
 # Application definition
 

@@ -20,5 +20,11 @@ urlpatterns = [
     path('products/create/', views_api.AdminProductCreateAPIView.as_view(), name='product-create'),
     path('products/<uuid:product_id>/update/', views_api.AdminProductUpdateAPIView.as_view(), name='product-update'),
     path('products/<uuid:product_id>/delete/', views_api.delete_product, name='product-delete'),
+    path('orders/', views_api.admin_orders_list, name='orders'),
+    path('orders/<uuid:order_id>/', views_api.get_order, name='order-detail'),
+    path('orders/<uuid:order_id>/update-status/', views_api.update_order_status, name='order-update-status'),
+    path('return-requests/', views_api.admin_return_requests_list, name='return-requests'),
+    path('return-requests/<uuid:return_request_id>/update-status/', views_api.update_return_request_status, name='return-request-update-status'),
+    path('return-requests/<uuid:return_request_id>/process-refund/', views_api.process_refund, name='process-refund'),
 ]
 

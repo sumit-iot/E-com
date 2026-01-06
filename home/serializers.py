@@ -72,3 +72,4 @@ class OrderCreateSerializer(serializers.Serializer):
     shipping_cost = serializers.DecimalField(max_digits=10, decimal_places=2, default=0)
     tax = serializers.DecimalField(max_digits=10, decimal_places=2, default=0)
 
+

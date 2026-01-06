@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refund Processed - VHInternaltional</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: #B88E2F;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border: 1px solid #ddd;
+        }
+        .info-box {
+            background: white;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #B88E2F;
+            border-radius: 4px;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        .info-value {
+            font-size: 16px;
+            color: #333;
+            margin-top: 5px;
+        }
+        .refund-amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: #28a745;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #B88E2F;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Refund Processed Successfully</h1>
+    </div>
+    <div class="content">
+        <p>Dear {{ user.username }},</p>
+        <p>We are pleased to inform you that your refund has been successfully processed.</p>
+        
+        <div class="info-box">
+            <div class="info-label">Refund Amount</div>
+            <div class="info-value refund-amount">Rs. {{ refund_amount|floatformat:2 }}</div>
+        </div>
+        
+        <div class="info-box">
+            <div class="info-label">Order Number</div>
+            <div class="info-value">{{ order.order_number }}</div>
+        </div>
+        
+        <div class="info-box">
+            <div class="info-label">Product Details</div>
+            <div class="info-value">
+                <strong>{{ order_item.product_name }}</strong><br>
+                Return Quantity: {{ return_request.quantity }}<br>
+                {% if order_item.size %}Size: {{ order_item.size }}<br>{% endif %}
+                {% if order_item.color %}Color: {{ order_item.color }}<br>{% endif %}
+            </div>
+        </div>
+        
+        <div class="info-box">
+            <div class="info-label">Refund Status</div>
+            <div class="info-value">{{ refund_status|upper }}</div>
+        </div>
+        
+        <div class="info-box">
+            <div class="info-label">Refund Date</div>
+            <div class="info-value">{{ return_request.refunded_at|date:"F d, Y H:i" }}</div>
+        </div>
+        
+        <p>
+            <strong>Important Information:</strong>
+        </p>
+        <ul>
+            <li>The refund amount of <strong>Rs. {{ refund_amount|floatformat:2 }}</strong> has been processed.</li>
+            <li>The refund will be credited to your original payment method within 5-7 business days.</li>
+            <li>You will receive a confirmation from your bank/payment provider once the refund is credited.</li>
+            <li>If you have any questions, please contact our support team.</li>
+        </ul>
+        
+        <p>
+            <a href="{{ site_url }}/my-orders/" class="button">View My Orders</a>
+        </p>
+        
+        <p>Thank you for shopping with VHInternaltional!</p>
+    </div>
+    <div class="footer">
+        <p>This is an automated notification from VHInternaltional</p>
+        <p>If you have any questions, please contact our support team.</p>
+    </div>
+</body>
+</html>
+

@@ -136,7 +136,22 @@ def cart_view(request):
 
 def checkout_view(request):
     """Checkout page view"""
+    # Redirect to login if not authenticated
+    if not request.user.is_authenticated:
+        from django.shortcuts import redirect
+        from django.urls import reverse
+        return redirect(f"{reverse('account:signin')}?next={reverse('home:checkout')}")
     return render(request, 'home/checkout.html')
+
+
+def billing_view(request):
+    """Billing page view"""
+    # Redirect to login if not authenticated
+    if not request.user.is_authenticated:
+        from django.shortcuts import redirect
+        from django.urls import reverse
+        return redirect(f"{reverse('account:signin')}?next={reverse('home:billing')}")
+    return render(request, 'home/billing.html')
 
 
 def order_confirmation_view(request, order_id):
@@ -151,3 +166,19 @@ def order_confirmation_view(request, order_id):
     except Order.DoesNotExist:
         from django.http import Http404
         raise Http404("Order not found")
+
+
+def my_orders_view(request):
+    """My Orders page view"""
+    if not request.user.is_authenticated:
+        from django.shortcuts import redirect
+        from django.urls import reverse
+        return redirect(f"{reverse('account:signin')}?next={reverse('home:my-orders')}")
+    
+    from .models import Order
+    orders = Order.objects.filter(user=request.user).prefetch_related('items').order_by('-created_at')
+    
+    context = {
+        'orders': orders,
+    }
+    return render(request, 'home/my_orders.html', context)
