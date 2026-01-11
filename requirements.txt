@@ -2,5 +2,7 @@ Django>=5.2.9
 djangorestframework
 razorpay
 Pillow
+django-storages
+boto3
 
 
