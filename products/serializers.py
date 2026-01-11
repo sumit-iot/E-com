@@ -9,9 +9,8 @@ class ProductCategorySerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_on', 'modified_on']
     
     def update(self, instance, validated_data):
-        # If img_url is not provided in the update, preserve the existing image
-        if 'img_url' not in validated_data:
-            validated_data['img_url'] = instance.img_url
+        # If img_url is not provided in the update, Django will automatically preserve the existing image
+        # We don't need to set it explicitly - just skip it
         return super().update(instance, validated_data)
 
 
@@ -47,9 +46,8 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         category_id = validated_data.pop('product_category_id', None)
-        # If img_url is not provided in the update, preserve the existing image
-        if 'img_url' not in validated_data:
-            validated_data['img_url'] = instance.img_url
+        # If img_url is not provided in the update, Django will automatically preserve the existing image
+        # We don't need to set it explicitly - just skip it
         if category_id is not None:
             if category_id:
                 try:

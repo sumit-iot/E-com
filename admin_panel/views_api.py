@@ -411,8 +411,12 @@ class AdminCategoryCreateAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
+            import traceback
+            error_traceback = traceback.format_exc()
+            print(f"Error creating category: {str(e)}")
+            print(f"Traceback: {error_traceback}")
             return Response(
-                {'error': f'Error creating category: {str(e)}'},
+                {'error': f'Error creating category: {str(e)}', 'traceback': error_traceback if settings.DEBUG else None},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -448,8 +452,12 @@ class AdminCategoryUpdateAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
         except Exception as e:
+            import traceback
+            error_traceback = traceback.format_exc()
+            print(f"Error updating category: {str(e)}")
+            print(f"Traceback: {error_traceback}")
             return Response(
-                {'error': f'Error updating category: {str(e)}'},
+                {'error': f'Error updating category: {str(e)}', 'traceback': error_traceback if settings.DEBUG else None},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -459,11 +467,10 @@ class AdminCategoryUpdateAPIView(APIView):
             data = request.data.copy()
             data['modified_by'] = request.user.username
             
-            # If img_url is not in request.FILES (no new image uploaded), preserve existing image
+            # If img_url is not in request.FILES (no new image uploaded), remove it from data
+            # Django will automatically preserve the existing image when the field is not provided
             if 'img_url' not in request.FILES:
-                if category.img_url:
-                    # Set the existing image file path
-                    data['img_url'] = category.img_url
+                data.pop('img_url', None)
             
             serializer = ProductCategorySerializer(category, data=data)
             if serializer.is_valid():
@@ -482,8 +489,12 @@ class AdminCategoryUpdateAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
         except Exception as e:
+            import traceback
+            error_traceback = traceback.format_exc()
+            print(f"Error updating category: {str(e)}")
+            print(f"Traceback: {error_traceback}")
             return Response(
-                {'error': f'Error updating category: {str(e)}'},
+                {'error': f'Error updating category: {str(e)}', 'traceback': error_traceback if settings.DEBUG else None},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -592,8 +603,12 @@ class AdminProductCreateAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
+            import traceback
+            error_traceback = traceback.format_exc()
+            print(f"Error creating product: {str(e)}")
+            print(f"Traceback: {error_traceback}")
             return Response(
-                {'error': f'Error creating product: {str(e)}'},
+                {'error': f'Error creating product: {str(e)}', 'traceback': error_traceback if settings.DEBUG else None},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -605,6 +620,7 @@ class AdminProductUpdateAPIView(APIView):
     def patch(self, request, product_id, *args, **kwargs):
         try:
             product = Product.objects.get(id=product_id)
+            # Create a mutable copy of request.data (QueryDict)
             data = request.data.copy()
             data['modified_by'] = request.user.username
             
@@ -629,22 +645,26 @@ class AdminProductUpdateAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
         except Exception as e:
+            import traceback
+            error_traceback = traceback.format_exc()
+            print(f"Error updating product: {str(e)}")
+            print(f"Traceback: {error_traceback}")
             return Response(
-                {'error': f'Error updating product: {str(e)}'},
+                {'error': f'Error updating product: {str(e)}', 'traceback': error_traceback if settings.DEBUG else None},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
     def put(self, request, product_id, *args, **kwargs):
         try:
             product = Product.objects.get(id=product_id)
+            # Create a mutable copy of request.data (QueryDict)
             data = request.data.copy()
             data['modified_by'] = request.user.username
             
-            # If img_url is not in request.FILES (no new image uploaded), preserve existing image
+            # If img_url is not in request.FILES (no new image uploaded), remove it from data
+            # Django will automatically preserve the existing image when the field is not provided
             if 'img_url' not in request.FILES:
-                if product.img_url:
-                    # Set the existing image file path
-                    data['img_url'] = product.img_url
+                data.pop('img_url', None)
             
             serializer = ProductSerializer(product, data=data)
             if serializer.is_valid():
@@ -663,8 +683,12 @@ class AdminProductUpdateAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
         except Exception as e:
+            import traceback
+            error_traceback = traceback.format_exc()
+            print(f"Error updating product: {str(e)}")
+            print(f"Traceback: {error_traceback}")
             return Response(
-                {'error': f'Error updating product: {str(e)}'},
+                {'error': f'Error updating product: {str(e)}', 'traceback': error_traceback if settings.DEBUG else None},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
