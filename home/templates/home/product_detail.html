@@ -115,9 +115,9 @@
                 <div class="product-details">
                     <h1 class="product-name">{{ product.name }}</h1>
                     <div class="product-price">
-                        <span class="current-price">Rs. {{ product.discounted_price|floatformat:2|stringformat:"g" }}</span>
+                        <span class="current-price">Rs. {{ product.discounted_price|floatformat:2 }}</span>
                         {% if product.discount > 0 %}
-                            <span class="original-price">Rs. {{ product.cost|floatformat:2|stringformat:"g" }}</span>
+                            <span class="original-price">Rs. {{ product.cost|floatformat:2 }}</span>
                         {% endif %}
                     </div>
                     
@@ -168,8 +168,8 @@
 
                     <!-- Action Buttons -->
                     <div class="product-actions">
-                        <button class="btn-add-cart" onclick="addToCart()">
-                            <i class="fas fa-shopping-bag"></i> Add To Cart
+                        <button class="btn-add-cart" id="addToCartBtn" onclick="addToCart()" {% if product.quantity == 0 %}disabled{% endif %}>
+                            <i class="fas fa-shopping-bag"></i> {% if product.quantity == 0 %}Out of Stock{% else %}Add To Cart{% endif %}
                         </button>
                     </div>
 
@@ -402,6 +402,9 @@
             const current = parseInt(qtyInput.value);
             if (current < max) {
                 qtyInput.value = current + 1;
+            } else {
+                // Prevent exceeding max quantity
+                qtyInput.value = max;
             }
         }
 
@@ -412,6 +415,24 @@
                 qtyInput.value = current - 1;
             }
         }
+
+        // Ensure quantity doesn't exceed product quantity
+        document.addEventListener('DOMContentLoaded', function() {
+            const qtyInput = document.getElementById('quantity');
+            if (qtyInput) {
+                qtyInput.addEventListener('change', function() {
+                    const max = parseInt(this.getAttribute('max'));
+                    const current = parseInt(this.value);
+                    if (current > max) {
+                        this.value = max;
+                        alert(`Maximum quantity available is ${max}`);
+                    }
+                    if (current < 1) {
+                        this.value = 1;
+                    }
+                });
+            }
+        });
 
         // Size selection
         document.querySelectorAll('.size-btn').forEach(btn => {

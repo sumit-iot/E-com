@@ -7,6 +7,12 @@ class ProductCategorySerializer(serializers.ModelSerializer):
         model = ProductCategory
         fields = ['id', 'category_name', 'img_url', 'discount', 'is_active', 'created_by', 'created_on', 'modified_by', 'modified_on']
         read_only_fields = ['id', 'created_on', 'modified_on']
+    
+    def update(self, instance, validated_data):
+        # If img_url is not provided in the update, preserve the existing image
+        if 'img_url' not in validated_data:
+            validated_data['img_url'] = instance.img_url
+        return super().update(instance, validated_data)
 
 
 class ProductCategoryListSerializer(serializers.ModelSerializer):
@@ -41,6 +47,9 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         category_id = validated_data.pop('product_category_id', None)
+        # If img_url is not provided in the update, preserve the existing image
+        if 'img_url' not in validated_data:
+            validated_data['img_url'] = instance.img_url
         if category_id is not None:
             if category_id:
                 try:

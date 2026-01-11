@@ -280,8 +280,13 @@
                     </div>
                     <div class="form-group">
                         <label>Return Quantity:</label>
-                        <input type="number" id="returnQuantity" min="1" value="1" required>
+                        <input type="number" id="returnQuantity" min="1" readonly required>
                         <small id="maxQuantity" class="form-help"></small>
+                    </div>
+                    <div class="form-group">
+                        <label>Defect Image (Optional):</label>
+                        <input type="file" id="defectImage" name="defect_image" accept="image/*">
+                        <small class="form-help">Upload an image showing the defect or issue</small>
                     </div>
                     <div class="form-group">
                         <label>Return Reason: <span class="required">*</span></label>
@@ -352,21 +357,25 @@
             const quantity = parseInt(document.getElementById('returnQuantity').value);
             const reason = document.getElementById('returnReason').value;
             const description = document.getElementById('returnDescription').value;
+            const defectImage = document.getElementById('defectImage').files[0];
+
+            const formData = new FormData();
+            formData.append('order_id', orderId);
+            formData.append('order_item_id', orderItemId);
+            formData.append('quantity', quantity);
+            formData.append('reason', reason);
+            formData.append('reason_description', description);
+            if (defectImage) {
+                formData.append('defect_image', defectImage);
+            }
 
             fetch('/api/returns/create/', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     'X-CSRFToken': getCookie('csrftoken'),
                 },
                 credentials: 'same-origin',
-                body: JSON.stringify({
-                    order_id: orderId,
-                    order_item_id: orderItemId,
-                    quantity: quantity,
-                    reason: reason,
-                    reason_description: description
-                })
+                body: formData
             })
             .then(response => response.json())
             .then(data => {

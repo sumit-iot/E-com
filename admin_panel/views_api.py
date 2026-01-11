@@ -427,6 +427,10 @@ class AdminCategoryUpdateAPIView(APIView):
             data = request.data.copy()
             data['modified_by'] = request.user.username
             
+            # If img_url is not in request.FILES (no new image uploaded), remove it from data to preserve existing image
+            if 'img_url' not in request.FILES:
+                data.pop('img_url', None)
+            
             serializer = ProductCategorySerializer(category, data=data, partial=True)
             if serializer.is_valid():
                 updated_category = serializer.save()
@@ -454,6 +458,12 @@ class AdminCategoryUpdateAPIView(APIView):
             category = ProductCategory.objects.get(id=category_id)
             data = request.data.copy()
             data['modified_by'] = request.user.username
+            
+            # If img_url is not in request.FILES (no new image uploaded), preserve existing image
+            if 'img_url' not in request.FILES:
+                if category.img_url:
+                    # Set the existing image file path
+                    data['img_url'] = category.img_url
             
             serializer = ProductCategorySerializer(category, data=data)
             if serializer.is_valid():
@@ -598,6 +608,10 @@ class AdminProductUpdateAPIView(APIView):
             data = request.data.copy()
             data['modified_by'] = request.user.username
             
+            # If img_url is not in request.FILES (no new image uploaded), remove it from data to preserve existing image
+            if 'img_url' not in request.FILES:
+                data.pop('img_url', None)
+            
             serializer = ProductSerializer(product, data=data, partial=True)
             if serializer.is_valid():
                 updated_product = serializer.save()
@@ -625,6 +639,12 @@ class AdminProductUpdateAPIView(APIView):
             product = Product.objects.get(id=product_id)
             data = request.data.copy()
             data['modified_by'] = request.user.username
+            
+            # If img_url is not in request.FILES (no new image uploaded), preserve existing image
+            if 'img_url' not in request.FILES:
+                if product.img_url:
+                    # Set the existing image file path
+                    data['img_url'] = product.img_url
             
             serializer = ProductSerializer(product, data=data)
             if serializer.is_valid():
@@ -914,16 +934,17 @@ def update_order_status(request, order_id):
                             logger.info(f"Processing refund for Return Request {return_request.id} - Amount: Rs. {refund_amount} ({refund_amount_paise} paise)")
                             print(f"[ORDER REFUND] Processing refund for Return Request {return_request.id} - Amount: Rs. {refund_amount} ({refund_amount_paise} paise)")
                             
-                            # Create refund via Razorpay
+                        # Create refund via Razorpay
                             refund_data = {
-                                'amount': refund_amount_paise,
-                                'speed': 'normal',
-                                'notes': {
-                                    'return_request_id': str(return_request.id),
-                                    'order_number': order.order_number,
-                                    'reason': return_request.get_reason_display(),
-                                }
+                            'amount': refund_amount_paise,
+                            'speed': 'normal',  # or 'optimum' for faster refunds
+                            'notes': {
+                                'return_request_id': str(return_request.id),
+                                'order_number': order.razorpay_order_id,
+                                # 'razorpay_order_id': order.razorpay_order_id or '',
+                                'reason': return_request.get_reason_display(),
                             }
+                        }
                             
                             logger.info(f"Calling Razorpay refund API - Payment ID: {order.razorpay_payment_id}, Amount: {refund_amount_paise} paise")
                             print(f"[ORDER REFUND] Calling Razorpay refund API - Payment ID: {order.razorpay_payment_id}, Amount: {refund_amount_paise} paise")
@@ -1154,6 +1175,7 @@ def update_return_request_status(request, return_request_id):
                             'notes': {
                                 'return_request_id': str(return_request.id),
                                 'order_number': order.order_number,
+                                'razorpay_order_id': order.razorpay_order_id or '',
                                 'reason': return_request.get_reason_display(),
                             }
                         }
@@ -1296,6 +1318,7 @@ def process_refund(request, return_request_id):
                 'notes': {
                     'return_request_id': str(return_request.id),
                     'order_number': order.order_number,
+                    'razorpay_order_id': order.razorpay_order_id or '',
                     'reason': return_request.get_reason_display(),
                 }
             }

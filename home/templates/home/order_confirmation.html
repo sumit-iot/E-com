@@ -106,6 +106,18 @@
                             {{ order.get_payment_status_display }}
                         </span>
                     </div>
+                    {% if order.razorpay_order_id %}
+                    <div class="detail-row">
+                        <span class="detail-label">Razorpay Order ID:</span>
+                        <span class="detail-value">{{ order.razorpay_order_id }}</span>
+                    </div>
+                    {% endif %}
+                    {% if order.razorpay_payment_id %}
+                    <div class="detail-row">
+                        <span class="detail-label">Razorpay Payment ID:</span>
+                        <span class="detail-value">{{ order.razorpay_payment_id }}</span>
+                    </div>
+                    {% endif %}
                     <div class="detail-row">
                         <span class="detail-label">Total Amount:</span>
                         <span class="detail-value total-amount">Rs. {{ order.total|floatformat:2 }}</span>
@@ -263,8 +275,13 @@
                     </div>
                     <div class="form-group">
                         <label>Return Quantity:</label>
-                        <input type="number" id="returnQuantity" min="1" value="1" required>
+                        <input type="number" id="returnQuantity" min="1" readonly required>
                         <small id="maxQuantity" class="form-help"></small>
+                    </div>
+                    <div class="form-group">
+                        <label>Defect Image (Optional):</label>
+                        <input type="file" id="defectImage" name="defect_image" accept="image/*">
+                        <small class="form-help">Upload an image showing the defect or issue</small>
                     </div>
                     <div class="form-group">
                         <label>Return Reason: <span class="required">*</span></label>
@@ -314,11 +331,12 @@
             document.getElementById('returnOrderId').value = orderId;
             document.getElementById('returnOrderItemId').value = orderItemId;
             document.getElementById('returnProductName').textContent = productName;
+            document.getElementById('returnQuantity').value = maxQuantity;
             document.getElementById('returnQuantity').max = maxQuantity;
-            document.getElementById('returnQuantity').value = 1;
-            document.getElementById('maxQuantity').textContent = `Maximum: ${maxQuantity}`;
+            document.getElementById('maxQuantity').textContent = `Ordered Quantity: ${maxQuantity}`;
             document.getElementById('returnReason').value = '';
             document.getElementById('returnDescription').value = '';
+            document.getElementById('defectImage').value = '';
             document.getElementById('returnModal').style.display = 'block';
         }
 
@@ -335,21 +353,25 @@
             const quantity = parseInt(document.getElementById('returnQuantity').value);
             const reason = document.getElementById('returnReason').value;
             const description = document.getElementById('returnDescription').value;
+            const defectImage = document.getElementById('defectImage').files[0];
+
+            const formData = new FormData();
+            formData.append('order_id', orderId);
+            formData.append('order_item_id', orderItemId);
+            formData.append('quantity', quantity);
+            formData.append('reason', reason);
+            formData.append('reason_description', description);
+            if (defectImage) {
+                formData.append('defect_image', defectImage);
+            }
 
             fetch('/api/returns/create/', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     'X-CSRFToken': getCookie('csrftoken'),
                 },
                 credentials: 'same-origin',
-                body: JSON.stringify({
-                    order_id: orderId,
-                    order_item_id: orderItemId,
-                    quantity: quantity,
-                    reason: reason,
-                    reason_description: description
-                })
+                body: formData
             })
             .then(response => response.json())
             .then(data => {

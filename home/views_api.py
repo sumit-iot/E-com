@@ -407,12 +407,23 @@ def verify_razorpay_payment(request):
 def create_return_request(request):
     """Create a return request for an order item"""
     try:
+        from rest_framework.parsers import MultiPartParser, FormParser
+        # Handle both JSON and FormData
         data = request.data
         order_id = data.get('order_id')
         order_item_id = data.get('order_item_id')
         reason = data.get('reason')
         reason_description = data.get('reason_description', '')
         return_quantity = data.get('quantity', 1)
+        # Note: defect_image handling requires adding defect_image field to ReturnRequest model
+        # This requires a database migration
+        defect_image = request.FILES.get('defect_image', None)
+        
+        # Convert quantity to int (FormData sends strings)
+        try:
+            return_quantity = int(return_quantity)
+        except (ValueError, TypeError):
+            return_quantity = 1
         
         # Validate required fields
         if not all([order_id, order_item_id, reason]):
