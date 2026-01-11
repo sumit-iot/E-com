@@ -93,6 +93,7 @@ def update_product(request, product_id):
     
     product_data = {
         'id': str(product.id),
+        'code': product.code or '',
         'name': product.name,
         'description': product.description or '',
         'cost': product.cost,

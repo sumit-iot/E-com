@@ -67,6 +67,7 @@ class Order(models.Model):
         ('processing', 'Processing'),
         ('shipped', 'Shipped'),
         ('delivered', 'Delivered'),
+        ('applied_for_return', 'Applied for Return'),
         ('cancelled', 'Cancelled'),
     ]
     

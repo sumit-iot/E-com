@@ -72,6 +72,12 @@
                     {% csrf_token %}
                     
                     <div class="form-grid">
+                        <div class="form-group">
+                            <label for="code">Product Code</label>
+                            <input type="text" id="code" name="code" placeholder="Enter product code">
+                            <span class="error-text" id="codeError"></span>
+                        </div>
+
                         <div class="form-group full-width">
                             <label for="name">Product Name *</label>
                             <input type="text" id="name" name="name" required placeholder="Enter product name">
@@ -157,6 +163,7 @@
 
             // Populate form for edit mode
             if (isEdit && productData) {
+                document.getElementById('code').value = productData.code || '';
                 document.getElementById('name').value = productData.name || '';
                 document.getElementById('description').value = productData.description || '';
                 document.getElementById('cost').value = productData.cost || 0;

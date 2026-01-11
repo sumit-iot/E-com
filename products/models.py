@@ -25,6 +25,7 @@ class ProductCategory(models.Model):
 
 class Product(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    code = models.CharField(max_length=50, unique=True, blank=True, null=True)
     name = models.CharField(max_length=50, blank=False, null=False)
     description = models.TextField(null=True, blank=True)
     cost = models.IntegerField(null=False, blank=False, default=0)

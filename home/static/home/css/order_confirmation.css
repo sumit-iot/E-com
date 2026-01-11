@@ -260,6 +260,11 @@
     color: #155724;
 }
 
+.status-applied_for_return {
+    background: #fff3cd;
+    color: #856404;
+}
+
 .status-cancelled {
     background: #f8d7da;
     color: #721c24;

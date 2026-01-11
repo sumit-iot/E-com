@@ -404,6 +404,7 @@ def verify_razorpay_payment(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@transaction.atomic
 def create_return_request(request):
     """Create a return request for an order item"""
     try:
@@ -483,6 +484,10 @@ def create_return_request(request):
             quantity=return_quantity,
             status='pending'
         )
+        
+        # Update order status to 'applied_for_return'
+        order.status = 'applied_for_return'
+        order.save()
         
         # Send email to admin
         send_return_request_email(return_request)
