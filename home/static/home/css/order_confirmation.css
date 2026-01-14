@@ -270,6 +270,11 @@
     color: #721c24;
 }
 
+.status-refunded {
+    background: #e2e3e5;
+    color: #383d41;
+}
+
 /* Return Request Button */
 .btn-return {
     margin-top: 10px;

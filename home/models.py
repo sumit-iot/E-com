@@ -69,6 +69,7 @@ class Order(models.Model):
         ('delivered', 'Delivered'),
         ('applied_for_return', 'Applied for Return'),
         ('cancelled', 'Cancelled'),
+        ('refunded', 'Refunded'),
     ]
     
     PAYMENT_STATUS_CHOICES = [

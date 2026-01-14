@@ -953,7 +953,7 @@ def update_order_status(request, order_id):
                             refund_amount = (item_total / item_quantity) * return_quantity
                             
                             # Convert to paise (Razorpay uses smallest currency unit)
-                            refund_amount_paise = int(refund_amount )
+                            refund_amount_paise = int(refund_amount * 100)
                             
                             logger.info(f"Processing refund for Return Request {return_request.id} - Amount: Rs. {refund_amount} ({refund_amount_paise} paise)")
                             print(f"[ORDER REFUND] Processing refund for Return Request {return_request.id} - Amount: Rs. {refund_amount} ({refund_amount_paise} paise)")
@@ -1015,13 +1015,14 @@ def update_order_status(request, order_id):
                             # Continue with other return requests even if one fails
                             continue
                     
-                    # Update order payment status if all items are refunded
+                    # Update order payment status and order status if all items are refunded
                     total_refunded = sum(float(req.refund_amount) for req in return_requests if req.refund_amount)
                     if total_refunded >= float(order.total):
                         order.payment_status = 'refunded'
+                        order.status = 'refunded'
                         order.save()
-                        logger.info(f"Order payment status updated to 'refunded' (full refund)")
-                        print(f"[ORDER REFUND] Order payment status updated to 'refunded' (full refund)")
+                        logger.info(f"Order payment status and order status updated to 'refunded' (full refund)")
+                        print(f"[ORDER REFUND] Order payment status and order status updated to 'refunded' (full refund)")
                 else:
                     logger.warning(f"Order {order.order_number} does not have Razorpay Payment ID. Cannot process refunds.")
                     print(f"[ORDER REFUND] Order {order.order_number} does not have Razorpay Payment ID. Cannot process refunds.")
@@ -1228,12 +1229,13 @@ def update_return_request_status(request, return_request_id):
                         logger.info(f"Return request updated with refund details. Status changed to 'completed'")
                         print(f"[RETURN REFUND] Return request updated with refund details. Status changed to 'completed'")
                         
-                        # Update order payment status if full refund
+                        # Update order payment status and order status if full refund
                         if refund_amount >= float(order.total):
                             order.payment_status = 'refunded'
+                            order.status = 'refunded'
                             order.save()
-                            logger.info(f"Order payment status updated to 'refunded' (full refund)")
-                            print(f"[RETURN REFUND] Order payment status updated to 'refunded' (full refund)")
+                            logger.info(f"Order payment status and order status updated to 'refunded' (full refund)")
+                            print(f"[RETURN REFUND] Order payment status and order status updated to 'refunded' (full refund)")
                         
                         # Send email notifications
                         logger.info(f"Sending refund notification emails to admin and user")
@@ -1371,9 +1373,10 @@ def process_refund(request, return_request_id):
             
             return_request.save()
             
-            # Update order payment status if full refund
+            # Update order payment status and order status if full refund
             if refund_amount >= float(order.total):
                 order.payment_status = 'refunded'
+                order.status = 'refunded'
                 order.save()
             
             # Send email notifications

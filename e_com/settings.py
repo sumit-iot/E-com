@@ -29,16 +29,16 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 # Razorpay Settings
-RAZORPAY_KEY_ID = ""  # Replace with your Razorpay Key ID
-RAZORPAY_KEY_SECRET = ""  # Replace with your Razorpay Key Secret
+RAZORPAY_KEY_ID = "rzp_test_E9RUW3lWWFhhM7"  # Replace with your Razorpay Key ID
+RAZORPAY_KEY_SECRET = "WVULeYwHg6vmlhUR6IaS3Vg8"  # Replace with your Razorpay Key Secret
 
 # Email Settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'  # Change to your SMTP server
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = ''  # Your email address
-EMAIL_HOST_PASSWORD = ''  # Your email password
+EMAIL_HOST_USER = "vhinternationaluk@gmail.com"  # Your email address
+EMAIL_HOST_PASSWORD = "lxwqnaplapxgtphn"  # Your email password
 DEFAULT_FROM_EMAIL = 'noreply@vhinternaltional.com'
 ADMIN_EMAIL = 'admin@vhinternaltional.com'  # Admin email for notifications
 SITE_URL = 'http://localhost:8000'  # Your site URL
@@ -93,10 +93,24 @@ WSGI_APPLICATION = 'e_com.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('PGDATABASE', 'neondb'),
+        'USER': os.getenv('PGUSER', 'neondb_owner'),
+        'PASSWORD': os.getenv('PGPASSWORD', 'npg_rMmNLJU68cOw'),
+        'HOST': os.getenv('PGHOST', 'ep-long-hall-ady8qxm6-pooler.c-2.us-east-1.aws.neon.tech'),
+        'PORT': os.getenv('PGPORT', '5432'),
+        'OPTIONS': {
+            'sslmode': 'require',
+        },
+        'DISABLE_SERVER_SIDE_CURSORS': True,
     }
 }
 
@@ -143,18 +157,18 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Get AWS credentials from environment variables or set directly
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID', '')  # Your AWS Access Key ID
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY', '')  # Your AWS Secret Access Key
-AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME', '')  # Your S3 Bucket Name
+AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME', 'sumittestbucket2908')  # Your S3 Bucket Name
 AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME', 'us-east-1')  # Your S3 Region (e.g., 'us-east-1', 'ap-south-1')
 
 # Only configure S3 if bucket name is provided
-USE_S3 = bool(AWS_STORAGE_BUCKET_NAME)
+USE_S3 = True
 
 if USE_S3:
     AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
     AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': 'max-age=86400',
     }
-    AWS_DEFAULT_ACL = 'public-read'
+    # AWS_DEFAULT_ACL = 'public-read'
     AWS_S3_FILE_OVERWRITE = False
     AWS_QUERYSTRING_AUTH = False
     
@@ -167,7 +181,8 @@ if USE_S3:
             "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
         },
     }
-    
+    DEFAULT_FILE_STORAGE = "storages.backends.s3.S3Storage"
+    AWS_DEFAULT_ACL = None
     # Media files URL
     MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
     MEDIA_ROOT = ''  # Not used when using S3
