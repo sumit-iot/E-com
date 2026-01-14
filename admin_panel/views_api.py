@@ -953,7 +953,7 @@ def update_order_status(request, order_id):
                             refund_amount = (item_total / item_quantity) * return_quantity
                             
                             # Convert to paise (Razorpay uses smallest currency unit)
-                            refund_amount_paise = int(refund_amount * 100)
+                            refund_amount_paise = int(refund_amount )
                             
                             logger.info(f"Processing refund for Return Request {return_request.id} - Amount: Rs. {refund_amount} ({refund_amount_paise} paise)")
                             print(f"[ORDER REFUND] Processing refund for Return Request {return_request.id} - Amount: Rs. {refund_amount} ({refund_amount_paise} paise)")
